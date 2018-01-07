@@ -4,8 +4,13 @@
   "description": "",
   "main": "ballsScript.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "browserify js/app.js -o debug.js",
+    "watch": "watchify js/app.js -o debug.js"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "browserify": "^15.0.0",
+    "watchify": "^3.9.0"
+  }
 }

@@ -2,12 +2,14 @@
 <html>
 <head>
     <link href="styles.css" rel="stylesheet">
-    <!-- Load the Paper.js library -->
-    <script type="text/javascript" src="./node_modules/paper/dist/paper-full.js"></script>
-    <!-- Define inlined PaperScript associate it with myCanvas -->
-    <script type="text/paperscript" canvas="myCanvas" src="ballsScript.js"></script>
 </head>
 <body>
 <canvas id="myCanvas" resize></canvas>
+
+
+<!-- Load the Paper.js library -->
+<script type="text/javascript" src="./node_modules/paper/dist/paper-full.js"></script>
+<!-- Define inlined PaperScript associate it with myCanvas  ballsScript.js -->
+<script type="text/paperscript" canvas="myCanvas" src="debug.js" async></script>
 </body>
 </html>

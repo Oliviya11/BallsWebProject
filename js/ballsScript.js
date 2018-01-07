@@ -45,7 +45,7 @@ function createBalls() {
 
 function createBall(num, ball_pos) {
     var point = track.getPointAt(ball_pos);
-    ball = new Path.Circle({
+    var ball = new Path.Circle({
         center: point,
         radius: radius,
         fillColor: 'yellow'
@@ -60,6 +60,7 @@ function moveBall(num) {
    if (track && currentPos[BALL_NUMBER -1] < track.length - 10) {
        currentPos[num] +=offset;
        balls[num].position = track.getPointAt(currentPos[num]);
+       console.log(" track.getPointAt(currentPos[num]): ",  track.getPointAt(currentPos[num]));
    }
 }
 
