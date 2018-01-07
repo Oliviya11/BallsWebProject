@@ -1,5 +1,10 @@
-var WINDOW_WIDTH = view.size.width;
-var WINDOW_HEIGHT = view.size.height;
+global.window_width = view.size.width;
+global.window_height = view.size.height;
+
+var WINDOW_WIDTH = global.window_width;
+var WINDOW_HEIGHT = global.window_height;
+
+
 
 function createTrack() {
     track = new Path();

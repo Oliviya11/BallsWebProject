@@ -1,5 +1,6 @@
 var Track = require('./Track');
 var Ball = require('./Ball');
+var Gun = require('./Gun');
 
 function GameManager() {
     var BALL_VELOCITY = 2;
@@ -54,8 +55,11 @@ function GameManager() {
         track = Track.createTrack();
         this.createBalls();
         var self = this;
+        var gun = new Gun.Gun();
         view.onFrame  = function (event) {
             self.moveBalls();
+            gun.move();
+            gun.shoot();
         };
     };
 
