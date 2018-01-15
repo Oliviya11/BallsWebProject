@@ -173,6 +173,9 @@ function Gun () {
     return curr_ball;
   };
 
+  this.isShoot = function () {
+    return shoot;
+  };
   var gun = null;
   this.createGun();
 

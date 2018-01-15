@@ -1,7 +1,7 @@
 var WINDOW_WIDTH = view.size.width;
 var WINDOW_HEIGHT = view.size.height;
 
-var BALL_NUMBER = 4;
+var BALL_NUMBER = 30;
 var track, currentPoint = 0, offset = 0, radius = 12, currentPos = [], balls = [];
 function createTrack() {
     track = new Path();
@@ -60,7 +60,7 @@ function moveBall(num) {
    if (track && currentPos[BALL_NUMBER -1] < track.length - 10) {
        currentPos[num] +=offset;
        balls[num].position = track.getPointAt(currentPos[num]);
-       console.log(" track.getPointAt(currentPos[num]): ",  track.getPointAt(currentPos[num]));
+       //console.log(" track.getPointAt(currentPos[num]): ",  track.getPointAt(currentPos[num]));
    }
 }
 

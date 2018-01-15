@@ -3,7 +3,7 @@ var Ball = require('./Ball');
 var Gun = require('./Gun');
 
 function GameManager () {
-  var BALL_VELOCITY = 2;
+  var BALL_VELOCITY = 2.5;
   var BALL_RADIUS = 12;
   var BALL_NUMBER = 30;
   var currentPos = [], balls = [];
@@ -44,7 +44,9 @@ function GameManager () {
     if (track && currentPos[BALL_NUMBER - 1] < track.length - 10) {
       currentPos[num] += offset;
       balls[num].move(this.getBallsPositionOnTrack(currentPos[num]));
-      this.onCollide(num, balls[num]);
+      if (gun.isShoot()) {
+        this.onCollide(num, balls[num]);
+      }
     }
   };
 
