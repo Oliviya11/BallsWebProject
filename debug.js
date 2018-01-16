@@ -7,11 +7,15 @@ function Ball (id, center, radius, color) {
   var ball = new Path.Circle({
     center: center,
     radius: radius,
-    fillColor: this.color,
+    fillColor: this.color
   });
 
   this.getId = function () {
     return this.id;
+  };
+
+  this.setId = function (id) {
+    this.id = id;
   };
 
   this.move = function (pos) {
@@ -50,10 +54,11 @@ var Ball = require('./Ball');
 var Gun = require('./Gun');
 
 function GameManager () {
-  var BALL_VELOCITY = 2.5;
+  var BALL_VELOCITY = 2;
   var BALL_RADIUS = 12;
-  var BALL_NUMBER = 30;
+  var ballNumber = 5;
   var currentPos = [], balls = [];
+  var stop = false;
 
   var track = null;
   var offset = null;
@@ -72,7 +77,7 @@ function GameManager () {
 
   this.createBalls = function () {
     var ball_pos = 0;
-    for (var i = 0; i < BALL_NUMBER; ++i) {
+    for (var i = 0; i < ballNumber; ++i) {
       this.createBall(i, ball_pos);
       currentPos[i] = ball_pos;
       ball_pos += BALL_RADIUS * 2;
@@ -80,32 +85,37 @@ function GameManager () {
   };
 
   this.createBall = function (num, ball_pos) {
-    var point = track.getPointAt(ball_pos);
-    var my_ball = new Ball.Ball(num + 1, point, BALL_RADIUS, 'yellow');
+    balls[num] = this.createBallImpl(num, ball_pos, 'yellow');
+  };
 
-    balls[num] = my_ball;
+  this.createBallImpl = function (num, ball_pos, color) {
+    var point = track.getPointAt(ball_pos);
+    return new Ball.Ball(num, point, BALL_RADIUS, color);
   };
 
   this.moveBall = function (num, vel) {
-    var offset = track.length / this.getNumOffset(vel);
-    if (track && currentPos[BALL_NUMBER - 1] < track.length - 10) {
-      currentPos[num] += offset;
-      balls[num].move(this.getBallsPositionOnTrack(currentPos[num]));
+    if (track && currentPos[ballNumber - 1] < track.length - 10) {
+       currentPos[num] += offset;
       if (gun.isShoot()) {
         this.onCollide(num, balls[num]);
+      }
+      balls[num].move(this.getBallsPositionOnTrack(currentPos[num]));
+      if (num > 0 && balls[num].colide(balls[num-1])) {
+        currentPos[num] += offset;
       }
     }
   };
 
   this.moveBalls = function () {
-    for (var i = 0; i < BALL_NUMBER; ++i) {
+    for (var i = 0; i < ballNumber; ++i) {
       this.moveBall(i, BALL_VELOCITY);
     }
   };
 
   this.launch = function () {
-   // var f = new Foo('MyFoo');
+    // var f = new Foo('MyFoo');
     track = Track.createTrack();
+    offset = track.length / this.getNumOffset(BALL_VELOCITY);
     this.createBalls();
     var self = this;
     gun = new Gun.Gun();
@@ -119,19 +129,45 @@ function GameManager () {
   this.onCollide = function (num, ball) {
     //splice
     if (!this.moveChain) {
-      var id = ball.colide(gun.getGunBall());
-      if (id) {
-         this.moveChain = true;
-         for (var i = id; i < BALL_NUMBER; ++i) {
-         currentPos[i] += (BALL_RADIUS * 2);
-         }
+      var gun_ball = gun.getGunBall();
+      var id = ball.colide(gun_ball);
+      if (id != null) {
+        var pos = currentPos[id];
+        var k = 0;
+        for (var i = id; i < ballNumber; ++i) {
+          currentPos[i] += BALL_RADIUS * 2;
+        }
+        /*
+        for (var j = id+1; j < ballNumber; ++j) {
+          if (balls[j].colide(balls[j-1])) {
+            console.log("collide");
+            currentPos[j] += 0.5;
+          }
+        }
+        */
+        this.createNewBall(id, pos);
+        this.moveChain = true;
       }
     }
   };
 
+  this.createNewBall = function (id, pos) {
+    var new_ball = this.createBallImpl(id, pos, gun.getGunBall().getColor());
+    balls.splice(id, 0, new_ball);
+    currentPos.splice(id, 0, pos);
+    ballNumber++;
+    this.setIds(id);
+  };
+
+  this.setIds = function (id) {
+    for (var i = id; i < ballNumber; ++i) {
+      var new_id = balls[i].getId() + 1;
+      balls[i].setId(new_id);
+    }
+  };
 }
 var Instance = null;
-function createInstance() {
+function createInstance () {
   Instance = new GameManager();
 }
 
@@ -206,7 +242,7 @@ function Gun () {
 
   this.createLine = function () {
     line = new Path();
-    // line.strokeColor = 'black';
+     line.strokeColor = 'black';
     line.add(new Point(WINDOW_WIDTH * 0.45, WINDOW_HEIGHT * 0.6));
     line.add(new Point(WINDOW_WIDTH, WINDOW_HEIGHT * 0.6));
     offset = line.length / this.getNumOffset(BALL_VELOCITY);

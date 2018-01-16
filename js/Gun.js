@@ -60,7 +60,7 @@ function Gun () {
 
   this.createLine = function () {
     line = new Path();
-    // line.strokeColor = 'black';
+     line.strokeColor = 'black';
     line.add(new Point(WINDOW_WIDTH * 0.45, WINDOW_HEIGHT * 0.6));
     line.add(new Point(WINDOW_WIDTH, WINDOW_HEIGHT * 0.6));
     offset = line.length / this.getNumOffset(BALL_VELOCITY);

@@ -6,11 +6,15 @@ function Ball (id, center, radius, color) {
   var ball = new Path.Circle({
     center: center,
     radius: radius,
-    fillColor: this.color,
+    fillColor: this.color
   });
 
   this.getId = function () {
     return this.id;
+  };
+
+  this.setId = function (id) {
+    this.id = id;
   };
 
   this.move = function (pos) {
