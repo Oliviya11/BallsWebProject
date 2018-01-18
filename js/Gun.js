@@ -47,7 +47,7 @@ function Gun () {
 
   this.createOneBall = function (gun_body) {
     var gun_ball1 = gun_body.clone({insert: true, deep: true});
-    gun_ball1.fillColor = 'yellow';
+    gun_ball1.fillColor = GameManager.Instance.colorManager.getRandomColor();
     gun_ball1.scale(0.2);
     return gun_ball1;
   };
@@ -150,7 +150,7 @@ function Gun () {
       var path = curr_ball.getPath();
       if (path.position.x <= 0 || path.position.x > WINDOW_WIDTH
         || path.position.y <= 0 || path.position.y > WINDOW_HEIGHT) {
-        gun_ball2.fillColor = 'red';
+        gun_ball2.fillColor = GameManager.Instance.colorManager.getRandomColor();
         path.remove();
         curr_line.remove();
         curr_ball = null;
@@ -158,6 +158,16 @@ function Gun () {
         ball_pos = 0;
       }
     }
+  };
+
+  this.removeCurrBallImpl = function() {
+    var path = curr_ball.getPath();
+    gun_ball2.fillColor = GameManager.Instance.colorManager.getRandomColor();
+    path.remove();
+    curr_line.remove();
+    curr_ball = null;
+    shoot = false;
+    ball_pos = 0;
   };
 
   this.shoot = function () {

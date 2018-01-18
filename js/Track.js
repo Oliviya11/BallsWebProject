@@ -7,6 +7,7 @@ var WINDOW_HEIGHT = global.window_height;
 
 
 function createTrack() {
+    var trackColor = '#F0E68C';
     track = new Path();
     track.add(new Point(WINDOW_WIDTH/8, WINDOW_HEIGHT/2));
     track.add(new Point(WINDOW_WIDTH/5, WINDOW_HEIGHT/4.5));
@@ -18,14 +19,14 @@ function createTrack() {
     track.add(new Point(WINDOW_WIDTH*0.3, WINDOW_HEIGHT*0.45));
     track.add(new Point(WINDOW_WIDTH*0.5, WINDOW_HEIGHT*0.46));
 
-    track.strokeColor = 'brown';
+    track.strokeColor = trackColor;
     track.strokeWidth = 25;
 
     track.smooth();
     var finish  = new Path.Circle({
         center: track.getPointAt(track.length),
         radius: 26,
-        fillColor: 'brown'
+        fillColor: trackColor
     });
 
     return track;

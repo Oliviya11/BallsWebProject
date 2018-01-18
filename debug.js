@@ -49,15 +49,81 @@ module.exports.Ball = Ball;
 
 
 },{}],2:[function(require,module,exports){
+function ColorManager() {
+  this.prevColor = -1;
+   var Color = {
+     'green' : 6,
+     '#FFA500' : 7,
+     'red' : 7,
+     'blue' : 10
+   };
+   this.decrese = function (color) {
+     Color[color] -= 1;
+  };
+   this.getRandomColor = function () {
+     /*
+     var color = this.prevColor;
+     while (color === this.prevColor || Color[color] === 0) {
+       color = Math.floor(Math.random() * 4);
+     }
+     this.prevColor = color;
+     */
+     var color = -1;
+     do {
+       color = Math.floor(Math.random() * 4);
+     }
+     while (Color[color] === 0);
+     return Object.keys(Color)[color];
+   }
+}
+
+module.exports.ColorManager = ColorManager;
+
+},{}],3:[function(require,module,exports){
 var Track = require('./Track');
 var Ball = require('./Ball');
 var Gun = require('./Gun');
+var ColorManager = require('./ColorManager');
 
 function GameManager () {
-  var BALL_VELOCITY = 2;
+  var BALL_VELOCITY = 1;
   var BALL_RADIUS = 12;
-  var ballNumber = 5;
+  var MOVE_CRASHED = 0.5;
+  var ballNumber = 30;
   var currentPos = [], balls = [];
+  this.colorManager = new ColorManager.ColorManager();
+  var colors = [
+    'green',
+    'green',
+    '#FFA500',
+    'blue',
+    'green',
+    'red',
+    'red',
+    '#FFA500',
+    'blue',
+    'blue',
+    'green',
+    'red',
+    'red',
+    '#FFA500',
+    'blue',
+    'green',
+    'blue',
+    'blue',
+    '#FFA500',
+    'red',
+    'green',
+    'red',
+    '#FFA500',
+    'blue',
+    '#FFA500',
+    'blue',
+    'red',
+    '#FFA500',
+    'blue',
+    'blue'
+  ];
   var stop = false;
 
   var track = null;
@@ -78,14 +144,14 @@ function GameManager () {
   this.createBalls = function () {
     var ball_pos = 0;
     for (var i = 0; i < ballNumber; ++i) {
-      this.createBall(i, ball_pos);
+      this.createBall(i, ball_pos, colors[i]);
       currentPos[i] = ball_pos;
       ball_pos += BALL_RADIUS * 2;
     }
   };
 
-  this.createBall = function (num, ball_pos) {
-    balls[num] = this.createBallImpl(num, ball_pos, 'yellow');
+  this.createBall = function (num, ball_pos, color) {
+    balls[num] = this.createBallImpl(num, ball_pos, color);
   };
 
   this.createBallImpl = function (num, ball_pos, color) {
@@ -101,7 +167,7 @@ function GameManager () {
       }
       balls[num].move(this.getBallsPositionOnTrack(currentPos[num]));
       if (num > 0 && balls[num].colide(balls[num-1])) {
-        currentPos[num] += offset;
+        currentPos[num] += MOVE_CRASHED;
       }
     }
   };
@@ -147,6 +213,7 @@ function GameManager () {
         */
         this.createNewBall(id, pos);
         this.moveChain = true;
+        gun.removeCurrBallImpl();
       }
     }
   };
@@ -170,15 +237,12 @@ var Instance = null;
 function createInstance () {
   Instance = new GameManager();
 }
-
 createInstance();
 
-//var ins = createInstance();
-//console.log(ins);
 module.exports.Instance = Instance;
 
 
-},{"./Ball":1,"./Gun":3,"./Track":4}],3:[function(require,module,exports){
+},{"./Ball":1,"./ColorManager":2,"./Gun":4,"./Track":5}],4:[function(require,module,exports){
 (function (global){
 global.back_color = '#e09448';
 var back_color = global.back_color;
@@ -229,7 +293,7 @@ function Gun () {
 
   this.createOneBall = function (gun_body) {
     var gun_ball1 = gun_body.clone({insert: true, deep: true});
-    gun_ball1.fillColor = 'yellow';
+    gun_ball1.fillColor = GameManager.Instance.colorManager.getRandomColor();
     gun_ball1.scale(0.2);
     return gun_ball1;
   };
@@ -332,7 +396,7 @@ function Gun () {
       var path = curr_ball.getPath();
       if (path.position.x <= 0 || path.position.x > WINDOW_WIDTH
         || path.position.y <= 0 || path.position.y > WINDOW_HEIGHT) {
-        gun_ball2.fillColor = 'red';
+        gun_ball2.fillColor = GameManager.Instance.colorManager.getRandomColor();
         path.remove();
         curr_line.remove();
         curr_ball = null;
@@ -340,6 +404,16 @@ function Gun () {
         ball_pos = 0;
       }
     }
+  };
+
+  this.removeCurrBallImpl = function() {
+    var path = curr_ball.getPath();
+    gun_ball2.fillColor = GameManager.Instance.colorManager.getRandomColor();
+    path.remove();
+    curr_line.remove();
+    curr_ball = null;
+    shoot = false;
+    ball_pos = 0;
   };
 
   this.shoot = function () {
@@ -365,7 +439,7 @@ function Gun () {
 
 module.exports.Gun = Gun;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./Ball":1,"./GameManager":2}],4:[function(require,module,exports){
+},{"./Ball":1,"./GameManager":3}],5:[function(require,module,exports){
 (function (global){
 global.window_width = view.size.width;
 global.window_height = view.size.height;
@@ -376,6 +450,7 @@ var WINDOW_HEIGHT = global.window_height;
 
 
 function createTrack() {
+    var trackColor = '#F0E68C';
     track = new Path();
     track.add(new Point(WINDOW_WIDTH/8, WINDOW_HEIGHT/2));
     track.add(new Point(WINDOW_WIDTH/5, WINDOW_HEIGHT/4.5));
@@ -387,14 +462,14 @@ function createTrack() {
     track.add(new Point(WINDOW_WIDTH*0.3, WINDOW_HEIGHT*0.45));
     track.add(new Point(WINDOW_WIDTH*0.5, WINDOW_HEIGHT*0.46));
 
-    track.strokeColor = 'brown';
+    track.strokeColor = trackColor;
     track.strokeWidth = 25;
 
     track.smooth();
     var finish  = new Path.Circle({
         center: track.getPointAt(track.length),
         radius: 26,
-        fillColor: 'brown'
+        fillColor: trackColor
     });
 
     return track;
@@ -404,7 +479,7 @@ function createTrack() {
 
 module.exports.createTrack = createTrack;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 var GameManager = require('./GameManager');
 
 //var game_manager = GameManagerInstance;
@@ -414,4 +489,4 @@ var GameManager = require('./GameManager');
 //console.log(GameManager.Instance);
 GameManager.Instance.launch();
 
-},{"./GameManager":2}]},{},[5]);
+},{"./GameManager":3}]},{},[6]);

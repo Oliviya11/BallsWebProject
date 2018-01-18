@@ -1,12 +1,47 @@
 var Track = require('./Track');
 var Ball = require('./Ball');
 var Gun = require('./Gun');
+var ColorManager = require('./ColorManager');
 
 function GameManager () {
-  var BALL_VELOCITY = 2;
+  var BALL_VELOCITY = 1;
   var BALL_RADIUS = 12;
-  var ballNumber = 5;
+  var MOVE_CRASHED = 0.5;
+  var ballNumber = 30;
   var currentPos = [], balls = [];
+  this.colorManager = new ColorManager.ColorManager();
+  var colors = [
+    'green',
+    'green',
+    '#FFA500',
+    'blue',
+    'green',
+    'red',
+    'red',
+    '#FFA500',
+    'blue',
+    'blue',
+    'green',
+    'red',
+    'red',
+    '#FFA500',
+    'blue',
+    'green',
+    'blue',
+    'blue',
+    '#FFA500',
+    'red',
+    'green',
+    'red',
+    '#FFA500',
+    'blue',
+    '#FFA500',
+    'blue',
+    'red',
+    '#FFA500',
+    'blue',
+    'blue'
+  ];
   var stop = false;
 
   var track = null;
@@ -27,14 +62,14 @@ function GameManager () {
   this.createBalls = function () {
     var ball_pos = 0;
     for (var i = 0; i < ballNumber; ++i) {
-      this.createBall(i, ball_pos);
+      this.createBall(i, ball_pos, colors[i]);
       currentPos[i] = ball_pos;
       ball_pos += BALL_RADIUS * 2;
     }
   };
 
-  this.createBall = function (num, ball_pos) {
-    balls[num] = this.createBallImpl(num, ball_pos, 'yellow');
+  this.createBall = function (num, ball_pos, color) {
+    balls[num] = this.createBallImpl(num, ball_pos, color);
   };
 
   this.createBallImpl = function (num, ball_pos, color) {
@@ -50,7 +85,7 @@ function GameManager () {
       }
       balls[num].move(this.getBallsPositionOnTrack(currentPos[num]));
       if (num > 0 && balls[num].colide(balls[num-1])) {
-        currentPos[num] += offset;
+        currentPos[num] += MOVE_CRASHED;
       }
     }
   };
@@ -96,6 +131,7 @@ function GameManager () {
         */
         this.createNewBall(id, pos);
         this.moveChain = true;
+        gun.removeCurrBallImpl();
       }
     }
   };
@@ -119,10 +155,7 @@ var Instance = null;
 function createInstance () {
   Instance = new GameManager();
 }
-
 createInstance();
 
-//var ins = createInstance();
-//console.log(ins);
 module.exports.Instance = Instance;
 
