@@ -9,6 +9,7 @@ var WINDOW_HEIGHT = global.window_height;
 function createTrack() {
     var trackColor = '#F0E68C';
     track = new Path();
+    track.add(new Point(10, WINDOW_HEIGHT*1.5));
     track.add(new Point(WINDOW_WIDTH/8, WINDOW_HEIGHT/2));
     track.add(new Point(WINDOW_WIDTH/5, WINDOW_HEIGHT/4.5));
     track.add(new Point(WINDOW_WIDTH/2, WINDOW_HEIGHT/4));

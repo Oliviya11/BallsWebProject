@@ -41,6 +41,10 @@ function Ball (id, center, radius, color) {
       return null;
     }
   };
+
+  this.remove = function () {
+    ball.remove();
+  }
 }
 
 module.exports.Ball = Ball;

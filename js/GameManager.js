@@ -2,46 +2,16 @@ var Track = require('./Track');
 var Ball = require('./Ball');
 var Gun = require('./Gun');
 var ColorManager = require('./ColorManager');
+var Colors = require('./Colors').Colors;
 
 function GameManager () {
   var BALL_VELOCITY = 1;
   var BALL_RADIUS = 12;
   var MOVE_CRASHED = 0.5;
   var ballNumber = 30;
-  var currentPos = [], balls = [];
+  var currentPos = [], balls = [], offsets = [];
   this.colorManager = new ColorManager.ColorManager();
-  var colors = [
-    'green',
-    'green',
-    '#FFA500',
-    'blue',
-    'green',
-    'red',
-    'red',
-    '#FFA500',
-    'blue',
-    'blue',
-    'green',
-    'red',
-    'red',
-    '#FFA500',
-    'blue',
-    'green',
-    'blue',
-    'blue',
-    '#FFA500',
-    'red',
-    'green',
-    'red',
-    '#FFA500',
-    'blue',
-    '#FFA500',
-    'blue',
-    'red',
-    '#FFA500',
-    'blue',
-    'blue'
-  ];
+
   var stop = false;
 
   var track = null;
@@ -62,9 +32,10 @@ function GameManager () {
   this.createBalls = function () {
     var ball_pos = 0;
     for (var i = 0; i < ballNumber; ++i) {
-      this.createBall(i, ball_pos, colors[i]);
+      this.createBall(i, ball_pos, Colors[i]);
       currentPos[i] = ball_pos;
-      ball_pos += BALL_RADIUS * 2;
+      ball_pos += BALL_RADIUS * 2 + MOVE_CRASHED;
+      offsets[i] = track.length / this.getNumOffset(BALL_VELOCITY);
     }
   };
 
@@ -83,9 +54,11 @@ function GameManager () {
       if (gun.isShoot()) {
         this.onCollide(num, balls[num]);
       }
-      balls[num].move(this.getBallsPositionOnTrack(currentPos[num]));
-      if (num > 0 && balls[num].colide(balls[num-1])) {
-        currentPos[num] += MOVE_CRASHED;
+      if (balls[num]) {
+        balls[num].move(this.getBallsPositionOnTrack(currentPos[num]));
+        if (num > 0 && balls[num].colide(balls[num - 1])) {
+          currentPos[num] += MOVE_CRASHED;
+        }
       }
     }
   };
@@ -121,16 +94,9 @@ function GameManager () {
         for (var i = id; i < ballNumber; ++i) {
           currentPos[i] += BALL_RADIUS * 2;
         }
-        /*
-        for (var j = id+1; j < ballNumber; ++j) {
-          if (balls[j].colide(balls[j-1])) {
-            console.log("collide");
-            currentPos[j] += 0.5;
-          }
-        }
-        */
         this.createNewBall(id, pos);
         this.moveChain = true;
+        this.destroyBalls(id);
         gun.removeCurrBallImpl();
       }
     }
@@ -141,15 +107,56 @@ function GameManager () {
     balls.splice(id, 0, new_ball);
     currentPos.splice(id, 0, pos);
     ballNumber++;
-    this.setIds(id);
+    this.setIds(id+1, 1);
+    //console.log("balls: ", balls);
   };
 
-  this.setIds = function (id) {
-    for (var i = id; i < ballNumber; ++i) {
-      var new_id = balls[i].getId() + 1;
+  this.setIds = function (begin, delta) {
+    for (var i = begin; i < ballNumber; ++i) {
+      var new_id = balls[i].getId() + delta;
       balls[i].setId(new_id);
     }
   };
+
+  this.destroyBalls = function (id) {
+    var rightBalls = this.countRight(id);
+    var leftBalls = this.countLeft(id);
+    var num = leftBalls.length + 1 + rightBalls.length;
+    if (num > 2) {
+      var ballsIdDestroy = leftBalls.concat([id], rightBalls);
+      for (var i = 0; i < ballsIdDestroy.length; ++i) {
+        var id = ballsIdDestroy[i];
+        balls[id].remove();
+      }
+      var self = this;
+      //console.log(balls.splice(ballsIdDestroy[0], num));
+      //console.log(currentPos.splice(ballNumber-num, num));
+     // ballNumber -= num;
+     // self.setIds(ballsIdDestroy[0], -num);
+    }
+  };
+  this.countRight = function (id) {
+    var ids = [];
+    var counter = 0;
+    var i = id + 1;
+    while (i < ballNumber && balls[i].getColor() === balls[i-1].getColor()) {
+      ids[counter++] = balls[i].getId();
+      ++i;
+    }
+    return ids;
+  };
+
+  this.countLeft = function (id) {
+    var ids = [];
+    var counter = 0;
+    var i = id - 1;
+    while (i > -1 && balls[i].getColor() === balls[i+1].getColor()) {
+      ids[counter++] = balls[i].getId();
+      --i;
+    }
+    return ids.reverse();
+  }
+
 }
 var Instance = null;
 function createInstance () {

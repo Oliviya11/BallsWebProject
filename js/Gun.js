@@ -14,7 +14,7 @@ function Gun () {
   var pivot_point = null;
   var shoot = false;
   var offset = null;
-  var BALL_VELOCITY = 10;
+  var BALL_VELOCITY = 15;
   var ball_pos = 0;
   var curr_line = null;
   var curr_ball = null;
@@ -122,7 +122,7 @@ function Gun () {
   };
 
   this.createCurrBall = function () {
-    curr_ball = new Ball.Ball(null, gun.children[2].position, BALL_RADIUS, gun.children[2].fillColor);
+    curr_ball = new Ball.Ball(null, gun.children[2].position, BALL_RADIUS, gun.children[2].fillColor.toCSS(true));
     gun_ball2.fillColor = back_color;
     GameManager.Instance.moveChain = false;
   };

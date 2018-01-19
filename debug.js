@@ -42,6 +42,10 @@ function Ball (id, center, radius, color) {
       return null;
     }
   };
+
+  this.remove = function () {
+    ball.remove();
+  }
 }
 
 module.exports.Ball = Ball;
@@ -52,10 +56,10 @@ module.exports.Ball = Ball;
 function ColorManager() {
   this.prevColor = -1;
    var Color = {
-     'green' : 6,
-     '#FFA500' : 7,
-     'red' : 7,
-     'blue' : 10
+     '#008000' : 6,
+     '#ffa500' : 7,
+     '#ff0000' : 7,
+     '#0000ff' : 10
    };
    this.decrese = function (color) {
      Color[color] -= 1;
@@ -80,50 +84,85 @@ function ColorManager() {
 module.exports.ColorManager = ColorManager;
 
 },{}],3:[function(require,module,exports){
+var Colors = [
+  '#008000',
+  '#008000',
+  '#ffa500',
+  '#0000ff',
+  '#008000',
+  '#ff0000',
+  '#ff0000',
+  '#ffa500',
+  '#0000ff',
+  '#0000ff',
+  '#008000',
+  '#ff0000',
+  '#ff0000',
+  '#ffa500',
+  '#0000ff',
+  '#008000',
+  '#0000ff',
+  '#0000ff',
+  '#ffa500',
+  '#ff0000',
+  '#008000',
+  '#ff0000',
+  '#ffa500',
+  '#0000ff',
+  '#ffa500',
+  '#0000ff',
+  '#ff0000',
+  '#ffa500',
+  '#0000ff',
+  '#0000ff',
+  '#008000',
+  '#008000',
+  '#ffa500',
+  '#0000ff',
+  '#008000',
+  '#ff0000',
+  '#ff0000',
+  '#ffa500',
+  '#0000ff',
+  '#0000ff',
+  '#008000',
+  '#ff0000',
+  '#ff0000',
+  '#ffa500',
+  '#0000ff',
+  '#008000',
+  '#0000ff',
+  '#0000ff',
+  '#ffa500',
+  '#ff0000',
+  '#008000',
+  '#ff0000',
+  '#ffa500',
+  '#0000ff',
+  '#ffa500',
+  '#0000ff',
+  '#ff0000',
+  '#ffa500',
+  '#0000ff',
+  '#0000ff'
+];
+
+exports.Colors = Colors;
+},{}],4:[function(require,module,exports){
 var Track = require('./Track');
 var Ball = require('./Ball');
 var Gun = require('./Gun');
 var ColorManager = require('./ColorManager');
+var Colors = require('./Colors').Colors;
 
 function GameManager () {
   var BALL_VELOCITY = 1;
   var BALL_RADIUS = 12;
   var MOVE_CRASHED = 0.5;
   var ballNumber = 30;
-  var currentPos = [], balls = [];
+  var currentPos = [], balls = [], offsets = [];
   this.colorManager = new ColorManager.ColorManager();
-  var colors = [
-    'green',
-    'green',
-    '#FFA500',
-    'blue',
-    'green',
-    'red',
-    'red',
-    '#FFA500',
-    'blue',
-    'blue',
-    'green',
-    'red',
-    'red',
-    '#FFA500',
-    'blue',
-    'green',
-    'blue',
-    'blue',
-    '#FFA500',
-    'red',
-    'green',
-    'red',
-    '#FFA500',
-    'blue',
-    '#FFA500',
-    'blue',
-    'red',
-    '#FFA500',
-    'blue',
-    'blue'
-  ];
+
   var stop = false;
 
   var track = null;
@@ -144,9 +183,10 @@ function GameManager () {
   this.createBalls = function () {
     var ball_pos = 0;
     for (var i = 0; i < ballNumber; ++i) {
-      this.createBall(i, ball_pos, colors[i]);
+      this.createBall(i, ball_pos, Colors[i]);
       currentPos[i] = ball_pos;
-      ball_pos += BALL_RADIUS * 2;
+      ball_pos += BALL_RADIUS * 2 + MOVE_CRASHED;
+      offsets[i] = track.length / this.getNumOffset(BALL_VELOCITY);
     }
   };
 
@@ -165,9 +205,11 @@ function GameManager () {
       if (gun.isShoot()) {
         this.onCollide(num, balls[num]);
       }
-      balls[num].move(this.getBallsPositionOnTrack(currentPos[num]));
-      if (num > 0 && balls[num].colide(balls[num-1])) {
-        currentPos[num] += MOVE_CRASHED;
+      if (balls[num]) {
+        balls[num].move(this.getBallsPositionOnTrack(currentPos[num]));
+        if (num > 0 && balls[num].colide(balls[num - 1])) {
+          currentPos[num] += MOVE_CRASHED;
+        }
       }
     }
   };
@@ -203,16 +245,9 @@ function GameManager () {
         for (var i = id; i < ballNumber; ++i) {
           currentPos[i] += BALL_RADIUS * 2;
         }
-        /*
-        for (var j = id+1; j < ballNumber; ++j) {
-          if (balls[j].colide(balls[j-1])) {
-            console.log("collide");
-            currentPos[j] += 0.5;
-          }
-        }
-        */
         this.createNewBall(id, pos);
         this.moveChain = true;
+        this.destroyBalls(id);
         gun.removeCurrBallImpl();
       }
     }
@@ -223,15 +258,56 @@ function GameManager () {
     balls.splice(id, 0, new_ball);
     currentPos.splice(id, 0, pos);
     ballNumber++;
-    this.setIds(id);
+    this.setIds(id+1, 1);
+    //console.log("balls: ", balls);
   };
 
-  this.setIds = function (id) {
-    for (var i = id; i < ballNumber; ++i) {
-      var new_id = balls[i].getId() + 1;
+  this.setIds = function (begin, delta) {
+    for (var i = begin; i < ballNumber; ++i) {
+      var new_id = balls[i].getId() + delta;
       balls[i].setId(new_id);
     }
   };
+
+  this.destroyBalls = function (id) {
+    var rightBalls = this.countRight(id);
+    var leftBalls = this.countLeft(id);
+    var num = leftBalls.length + 1 + rightBalls.length;
+    if (num > 2) {
+      var ballsIdDestroy = leftBalls.concat([id], rightBalls);
+      for (var i = 0; i < ballsIdDestroy.length; ++i) {
+        var id = ballsIdDestroy[i];
+        balls[id].remove();
+      }
+      var self = this;
+      //console.log(balls.splice(ballsIdDestroy[0], num));
+      //console.log(currentPos.splice(ballNumber-num, num));
+     // ballNumber -= num;
+     // self.setIds(ballsIdDestroy[0], -num);
+    }
+  };
+  this.countRight = function (id) {
+    var ids = [];
+    var counter = 0;
+    var i = id + 1;
+    while (i < ballNumber && balls[i].getColor() === balls[i-1].getColor()) {
+      ids[counter++] = balls[i].getId();
+      ++i;
+    }
+    return ids;
+  };
+
+  this.countLeft = function (id) {
+    var ids = [];
+    var counter = 0;
+    var i = id - 1;
+    while (i > -1 && balls[i].getColor() === balls[i+1].getColor()) {
+      ids[counter++] = balls[i].getId();
+      --i;
+    }
+    return ids.reverse();
+  }
+
 }
 var Instance = null;
 function createInstance () {
@@ -242,7 +318,7 @@ createInstance();
 module.exports.Instance = Instance;
 
 
-},{"./Ball":1,"./ColorManager":2,"./Gun":4,"./Track":5}],4:[function(require,module,exports){
+},{"./Ball":1,"./ColorManager":2,"./Colors":3,"./Gun":5,"./Track":6}],5:[function(require,module,exports){
 (function (global){
 global.back_color = '#e09448';
 var back_color = global.back_color;
@@ -260,7 +336,7 @@ function Gun () {
   var pivot_point = null;
   var shoot = false;
   var offset = null;
-  var BALL_VELOCITY = 10;
+  var BALL_VELOCITY = 15;
   var ball_pos = 0;
   var curr_line = null;
   var curr_ball = null;
@@ -368,7 +444,7 @@ function Gun () {
   };
 
   this.createCurrBall = function () {
-    curr_ball = new Ball.Ball(null, gun.children[2].position, BALL_RADIUS, gun.children[2].fillColor);
+    curr_ball = new Ball.Ball(null, gun.children[2].position, BALL_RADIUS, gun.children[2].fillColor.toCSS(true));
     gun_ball2.fillColor = back_color;
     GameManager.Instance.moveChain = false;
   };
@@ -439,7 +515,7 @@ function Gun () {
 
 module.exports.Gun = Gun;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./Ball":1,"./GameManager":3}],5:[function(require,module,exports){
+},{"./Ball":1,"./GameManager":4}],6:[function(require,module,exports){
 (function (global){
 global.window_width = view.size.width;
 global.window_height = view.size.height;
@@ -452,6 +528,7 @@ var WINDOW_HEIGHT = global.window_height;
 function createTrack() {
     var trackColor = '#F0E68C';
     track = new Path();
+    track.add(new Point(10, WINDOW_HEIGHT*1.5));
     track.add(new Point(WINDOW_WIDTH/8, WINDOW_HEIGHT/2));
     track.add(new Point(WINDOW_WIDTH/5, WINDOW_HEIGHT/4.5));
     track.add(new Point(WINDOW_WIDTH/2, WINDOW_HEIGHT/4));
@@ -479,7 +556,7 @@ function createTrack() {
 
 module.exports.createTrack = createTrack;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var GameManager = require('./GameManager');
 
 //var game_manager = GameManagerInstance;
@@ -489,4 +566,4 @@ var GameManager = require('./GameManager');
 //console.log(GameManager.Instance);
 GameManager.Instance.launch();
 
-},{"./GameManager":3}]},{},[6]);
+},{"./GameManager":4}]},{},[7]);

@@ -1,10 +1,10 @@
 function ColorManager() {
   this.prevColor = -1;
    var Color = {
-     'green' : 6,
-     '#FFA500' : 7,
-     'red' : 7,
-     'blue' : 10
+     '#008000' : 6,
+     '#ffa500' : 7,
+     '#ff0000' : 7,
+     '#0000ff' : 10
    };
    this.decrese = function (color) {
      Color[color] -= 1;
