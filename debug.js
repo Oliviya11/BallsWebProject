@@ -186,7 +186,7 @@ function GameManager () {
       this.createBall(i, ball_pos, Colors[i]);
       currentPos[i] = ball_pos;
       ball_pos += BALL_RADIUS * 2 + MOVE_CRASHED;
-      offsets[i] = track.length / this.getNumOffset(BALL_VELOCITY);
+      offsets[i] = offset;
     }
   };
 
@@ -201,7 +201,7 @@ function GameManager () {
 
   this.moveBall = function (num, vel) {
     if (track && currentPos[ballNumber - 1] < track.length - 10) {
-       currentPos[num] += offset;
+       currentPos[num] += offsets[num];
       if (gun.isShoot()) {
         this.onCollide(num, balls[num]);
       }
@@ -209,7 +209,11 @@ function GameManager () {
         balls[num].move(this.getBallsPositionOnTrack(currentPos[num]));
         if (num > 0 && balls[num].colide(balls[num - 1])) {
           currentPos[num] += MOVE_CRASHED;
-        }
+       }
+      }
+      if (this.ballsIdDestroy) {
+        var num = this.ballsIdDestroy.length;
+        this.collideBack(this.ballsIdDestroy[0]-1, this.ballsIdDestroy[num-1]+1, offset);
       }
     }
   };
@@ -257,6 +261,7 @@ function GameManager () {
     var new_ball = this.createBallImpl(id, pos, gun.getGunBall().getColor());
     balls.splice(id, 0, new_ball);
     currentPos.splice(id, 0, pos);
+    offsets.splice(id, 0, offset);
     ballNumber++;
     this.setIds(id+1, 1);
     //console.log("balls: ", balls);
@@ -274,9 +279,9 @@ function GameManager () {
     var leftBalls = this.countLeft(id);
     var num = leftBalls.length + 1 + rightBalls.length;
     if (num > 2) {
-      var ballsIdDestroy = leftBalls.concat([id], rightBalls);
-      for (var i = 0; i < ballsIdDestroy.length; ++i) {
-        var id = ballsIdDestroy[i];
+      this.ballsIdDestroy = leftBalls.concat([id], rightBalls);
+      for (var i = 0; i < this.ballsIdDestroy.length; ++i) {
+        var id = this.ballsIdDestroy[i];
         balls[id].remove();
       }
       var self = this;
@@ -284,6 +289,19 @@ function GameManager () {
       //console.log(currentPos.splice(ballNumber-num, num));
      // ballNumber -= num;
      // self.setIds(ballsIdDestroy[0], -num);
+
+      this.changeBallsMove(this.ballsIdDestroy[num-1]+1, -offset);
+    }
+  };
+  this.changeBallsMove = function (id, offset) {
+    for (var i = id; i < ballNumber; ++i) {
+      offsets[i] = offset;
+    }
+  };
+  this.collideBack = function (beginId, endId, offset) {
+    if (balls[beginId].colide(balls[endId])) {
+      this.changeBallsMove(endId, offset);
+      this.ballsIdDestroy = null;
     }
   };
   this.countRight = function (id) {
