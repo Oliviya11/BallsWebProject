@@ -1,15 +1,34 @@
 function Ball (id, center, radius, color) {
 
+
   this.id = id;
   this.color = color;
   this.trackPos = 0;
   this.offset = 0;
-  this.removed = false;
+  this.textId = '';
+  this.setTextId = function(id) {
+    if (id || id == 0) {
+      this.textId = id;
+    } else {
+      this.textId = '';
+    }
+  };
+
+  this.setTextId(id);
 
   var ball = new Path.Circle({
     center: center,
     radius: radius,
     fillColor: this.color
+  });
+
+  this.text = new PointText({
+    point: center,
+    content: this.textId,
+    fillColor: 'black',
+    fontFamily: 'Courier New',
+    fontWeight: 'bold',
+    fontSize: 15
   });
 
   this.getId = function () {
@@ -18,10 +37,13 @@ function Ball (id, center, radius, color) {
 
   this.setId = function (id) {
     this.id = id;
+    this.setTextId(id);
+    this.text.content = this.textId;
   };
 
   this.move = function (pos) {
     ball.position = pos;
+    this.text.point = new Point(pos.x - 5, pos.y + 5);
   };
 
   this.getPath = function () {
@@ -47,6 +69,7 @@ function Ball (id, center, radius, color) {
 
   this.remove = function () {
     ball.remove();
+    this.text.remove();
   };
 
   this.setTrackPos = function(trackP) {
@@ -73,9 +96,6 @@ function Ball (id, center, radius, color) {
     this.id = null;
   };
 
-  this.getRemoved = function () {
-    return this.removed;
-  }
 }
 
 module.exports.Ball = Ball;
