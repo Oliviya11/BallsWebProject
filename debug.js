@@ -193,6 +193,8 @@ function GameManager () {
   var col_emit = false;
   var id = null;
   this.moveChain = false;
+  this.showAnimation = false;
+  this.stopBalls = false;
 
   this.getNumOffset = function (velocity) {
     return track.length / velocity;
@@ -221,21 +223,23 @@ function GameManager () {
     return new Ball.Ball(num, point, BALL_RADIUS, color);
   };
 
-  this.moveBall = function (num, vel) {
+  this.moveBall = function (num) {
     if (track && balls[ballNumber - 1].getTrackPos() < track.length - 10) {
-       balls[num].increaseTrackPos(balls[num].getOffset());
+      balls[num].increaseTrackPos(balls[num].getOffset());
       if (gun.isShoot()) {
         this.onCollide(num, balls[num]);
       }
       if (balls[num]) {
         balls[num].move(this.getBallsPositionOnTrack(balls[num].getTrackPos()));
         if (num > 0 && balls[num].colide(balls[num - 1])) {
-          balls[num].increaseTrackPos(MOVE_CRASHED);
-       }
+           if (!this.stopBalls) {
+             balls[num].increaseTrackPos(MOVE_CRASHED);
+           }
+        }
       }
       if (this.ballsIdDestroy) {
         var num = this.ballsIdDestroy.length;
-        this.collideBack(this.ballsIdDestroy[0]-1, this.ballsIdDestroy[num-1]+1, offset);
+        this.collideBack(this.ballsIdDestroy[0] - 1, this.ballsIdDestroy[num - 1] + 1, offset);
       }
     }
   };
@@ -273,6 +277,7 @@ function GameManager () {
         }
         this.createNewBall(id, pos);
         this.moveChain = true;
+        this.showAnimation = true;
         this.initBallsIdDestroy(id);
         gun.removeCurrBallImpl();
       }
@@ -285,7 +290,7 @@ function GameManager () {
     balls[id].setTrackPos(pos);
     balls[id].setOffset(offset);
     ballNumber++;
-    this.setIds(id+1, 1);
+    this.setIds(id + 1, 1);
     //console.log("balls: ", balls);
   };
 
@@ -302,32 +307,36 @@ function GameManager () {
     var num = leftBalls.length + 1 + rightBalls.length;
     if (num > 2) {
       this.ballsIdDestroy = leftBalls.concat([id], rightBalls);
+      this.stopChain();
       for (var i = 0; i < this.ballsIdDestroy.length; ++i) {
         var id = this.ballsIdDestroy[i];
         balls[id].remove();
       }
-      var self = this;
-      //console.log(balls.splice(ballsIdDestroy[0], num));
-      //console.log(currentPos.splice(ballNumber-num, num));
-     // ballNumber -= num;
-     // self.setIds(ballsIdDestroy[0], -num);
-      if (id !== ballNumber - 1) {
-        this.changeBallsMove(this.ballsIdDestroy[num - 1] + 1, -2 * offset);
-      }
+     // this.moveChainBack();
     }
   };
-  this.changeBallsMove = function (id, offset) {
-    for (var i = id; i < ballNumber; ++i) {
+  this.changeBallsMove = function (idBegin, idEnd, offset) {
+    for (var i = idBegin; i < idEnd; ++i) {
       balls[i].setOffset(offset);
     }
   };
+  this.moveChainBack = function () {
+    var num = this.ballsIdDestroy.length;
+    this.changeBallsMove(this.ballsIdDestroy[num - 1] + 1, ballNumber, -2 * offset);
+  };
+  this.stopChain = function () {
+    this.stopBalls = true;
+    var num = this.ballsIdDestroy.length;
+    this.changeBallsMove(this.ballsIdDestroy[num - 1] + 1, ballNumber, 0);
+  };
   this.collideBack = function (beginId, endId, offset) {
-     if (beginId < 0 || endId >= ballNumber || balls[beginId].colide(balls[endId])) {
-      this.changeBallsMove(endId, offset);
+    if (beginId < 0 || endId >= ballNumber || balls[beginId].colide(balls[endId])) {
+      this.changeBallsMove(endId, ballNumber, offset);
       this.destroyBalls();
+      this.stopBalls = false;
     }
   };
-  
+
   this.destroyBalls = function () {
     var num = this.ballsIdDestroy.length;
     balls.splice(this.ballsIdDestroy[0], num);
@@ -340,7 +349,7 @@ function GameManager () {
     var ids = [];
     var counter = 0;
     var i = id + 1;
-    while (i < ballNumber && balls[i].getColor() === balls[i-1].getColor()) {
+    while (i < ballNumber && balls[i].getColor() === balls[i - 1].getColor()) {
       ids[counter++] = balls[i].getId();
       ++i;
     }
@@ -351,12 +360,12 @@ function GameManager () {
     var ids = [];
     var counter = 0;
     var i = id - 1;
-    while (i > -1 && balls[i].getColor() === balls[i+1].getColor()) {
+    while (i > -1 && balls[i].getColor() === balls[i + 1].getColor()) {
       ids[counter++] = balls[i].getId();
       --i;
     }
     return ids.reverse();
-  }
+  };
 
 }
 var Instance = null;
