@@ -5,6 +5,7 @@ function Ball (id, center, radius, color) {
   this.color = color;
   this.trackPos = 0;
   this.offset = 0;
+  this.removed = false;
 
   var ball = new Path.Circle({
     center: center,
@@ -66,8 +67,16 @@ function Ball (id, center, radius, color) {
 
   this.getOffset = function () {
     return this.offset;
-  }
+  };
 
+  this.setRemoved = function() {
+    this.removed = true;
+    this.id = null;
+  };
+
+  this.getRemoved = function () {
+    return this.removed;
+  }
 }
 
 module.exports.Ball = Ball;
@@ -239,7 +248,7 @@ function GameManager () {
       }
       if (this.ballsIdDestroy) {
         var num = this.ballsIdDestroy.length;
-        this.collideBack(this.ballsIdDestroy[0] - 1, this.ballsIdDestroy[num - 1] + 1, offset);
+        this.collideBack(this.ballsIdDestroy[0]-1, this.ballsIdDestroy[0], offset);
       }
     }
   };
@@ -313,6 +322,7 @@ function GameManager () {
         balls[id].remove();
       }
      // this.moveChainBack();
+      this.destroyBalls();
     }
   };
   this.changeBallsMove = function (idBegin, idEnd, offset) {
@@ -332,7 +342,7 @@ function GameManager () {
   this.collideBack = function (beginId, endId, offset) {
     if (beginId < 0 || endId >= ballNumber || balls[beginId].colide(balls[endId])) {
       this.changeBallsMove(endId, ballNumber, offset);
-      this.destroyBalls();
+    //  this.destroyBalls();
       this.stopBalls = false;
     }
   };
@@ -342,7 +352,7 @@ function GameManager () {
     balls.splice(this.ballsIdDestroy[0], num);
     ballNumber -= num;
     this.setIds(this.ballsIdDestroy[0], -num);
-    this.ballsIdDestroy = null;
+   // this.ballsIdDestroy = null;
   };
 
   this.countRight = function (id) {
@@ -488,6 +498,7 @@ function Gun () {
   };
 
   this.startShooting = function () {
+    //!GameManager.Instance.showAnimation
     if (!curr_ball) {
       this.createCurrLine();
       this.createCurrBall();

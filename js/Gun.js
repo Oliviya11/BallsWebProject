@@ -107,6 +107,7 @@ function Gun () {
   };
 
   this.startShooting = function () {
+    //!GameManager.Instance.showAnimation
     if (!curr_ball) {
       this.createCurrLine();
       this.createCurrBall();

@@ -66,7 +66,7 @@ function GameManager () {
       }
       if (this.ballsIdDestroy) {
         var num = this.ballsIdDestroy.length;
-        this.collideBack(this.ballsIdDestroy[0] - 1, this.ballsIdDestroy[num - 1] + 1, offset);
+        this.collideBack(this.ballsIdDestroy[0]-1, this.ballsIdDestroy[0], offset);
       }
     }
   };
@@ -140,6 +140,7 @@ function GameManager () {
         balls[id].remove();
       }
      // this.moveChainBack();
+      this.destroyBalls();
     }
   };
   this.changeBallsMove = function (idBegin, idEnd, offset) {
@@ -159,7 +160,7 @@ function GameManager () {
   this.collideBack = function (beginId, endId, offset) {
     if (beginId < 0 || endId >= ballNumber || balls[beginId].colide(balls[endId])) {
       this.changeBallsMove(endId, ballNumber, offset);
-      this.destroyBalls();
+    //  this.destroyBalls();
       this.stopBalls = false;
     }
   };
@@ -169,7 +170,7 @@ function GameManager () {
     balls.splice(this.ballsIdDestroy[0], num);
     ballNumber -= num;
     this.setIds(this.ballsIdDestroy[0], -num);
-    this.ballsIdDestroy = null;
+   // this.ballsIdDestroy = null;
   };
 
   this.countRight = function (id) {

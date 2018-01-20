@@ -4,6 +4,7 @@ function Ball (id, center, radius, color) {
   this.color = color;
   this.trackPos = 0;
   this.offset = 0;
+  this.removed = false;
 
   var ball = new Path.Circle({
     center: center,
@@ -65,8 +66,16 @@ function Ball (id, center, radius, color) {
 
   this.getOffset = function () {
     return this.offset;
-  }
+  };
 
+  this.setRemoved = function() {
+    this.removed = true;
+    this.id = null;
+  };
+
+  this.getRemoved = function () {
+    return this.removed;
+  }
 }
 
 module.exports.Ball = Ball;
