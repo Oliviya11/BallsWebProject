@@ -43,7 +43,9 @@ function Ball (id, center, radius, color) {
 
   this.move = function (pos) {
     ball.position = pos;
-    this.text.point = new Point(pos.x - 5, pos.y + 5);
+    if (pos) {
+      this.text.point = new Point(pos.x - 5, pos.y + 5);
+    }
   };
 
   this.getPath = function () {
