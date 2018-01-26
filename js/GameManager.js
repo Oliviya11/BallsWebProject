@@ -144,7 +144,9 @@ function GameManager () {
         }
       }
       if (found) {
-        this.idToDestroy[i]++;
+        for (var k = i;  k < ballNumber; ++k) {
+          this.idToDestroy[k]++;
+        }
       }
       this.changed = false;
     }

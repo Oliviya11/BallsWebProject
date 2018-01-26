@@ -216,7 +216,7 @@ function GameManager () {
   var BALL_VELOCITY = 1;
   var BALL_RADIUS = 12;
   var MOVE_CRASHED = 0.5;
-  var ballNumber = 30;
+  var ballNumber = 45;
   var balls = [];
   this.colorManager = new ColorManager.ColorManager();
   var stop = false;
@@ -308,6 +308,7 @@ function GameManager () {
       var gun_ball = gun.getGunBall();
       var id = ball.colide(gun_ball);
       if (id != null) {
+        console.log('id: ', id);
         var pos = balls[id].getTrackPos();
         var offset = balls[id].getOffset();
         var k = 0;
