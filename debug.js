@@ -62,12 +62,29 @@ function Ball (id, center, radius, color) {
     return this.color;
   };
 
-  this.colide = function (another) {
+  this.collideId = function (another) {
     if (another && another.getPath().intersects(ball)) {
       return this.id;
     } else {
       return null;
     }
+  };
+
+  this.collide = function (another) {
+    if (another && another.getPath().intersects(ball)) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  this.setStroke = function () {
+    ball.strokeColor = 'black';
+    ball.strokeWidth = 10;
+  };
+
+  this.setNoStroke = function () {
+    ball.strokeWidth = 0;
   };
 
   this.remove = function () {
@@ -85,6 +102,9 @@ function Ball (id, center, radius, color) {
 
   this.increaseTrackPos = function (delta) {
     this.trackPos += delta;
+  };
+  this.getPos = function () {
+    return this.trackPos;
   };
   this.setOffset = function (offset) {
     this.offset = offset;
@@ -107,30 +127,44 @@ module.exports.Ball = Ball;
 
 },{}],2:[function(require,module,exports){
 function ColorManager() {
+  this.backColor = '#e09448';
   this.prevColor = -1;
+  var ColorNum = 4;
    var Color = {
-     '#008000' : 6,
-     '#ffa500' : 7,
-     '#ff0000' : 7,
-     '#0000ff' : 10
+     '#008000' : 12,
+     '#ffa500' : 17,
+     '#ff0000' : 15,
+     '#0000ff' : 21
    };
-   this.decrese = function (color) {
-     Color[color] -= 1;
-  };
-   this.getRandomColor = function () {
-     /*
-     var color = this.prevColor;
-     while (color === this.prevColor || Color[color] === 0) {
-       color = Math.floor(Math.random() * 4);
+   this.decrease = function (color) {
+     if (Color[color] > 0) {
+       Color[color] -= 1;
      }
-     this.prevColor = color;
-     */
+   };
+   this.increase = function (color) {
+     Color[color] += 1;
+   };
+   this.getRandomColor = function () {
      var color = -1;
+     var colorStr = '';
+     if (this.checkAllZero()) {
+       return this.backColor;
+     }
      do {
        color = Math.floor(Math.random() * 4);
+       colorStr = Object.keys(Color)[color];
      }
-     while (Color[color] === 0);
-     return Object.keys(Color)[color];
+     while (Color[colorStr] === 0);
+     return colorStr;
+   };
+   this.checkAllZero = function() {
+     for (var i = 0; i < ColorNum; ++i) {
+       var str = Object.keys(Color)[i];
+       if (Color[str] !== 0) {
+         return false;
+       }
+     }
+     return true;
    }
 }
 
@@ -139,14 +173,14 @@ module.exports.ColorManager = ColorManager;
 },{}],3:[function(require,module,exports){
 var Colors = [
   '#008000',
-  '#008000',
-  '#ffa500',
   '#0000ff',
-  '#008000',
-  '#ff0000',
+  '#0000ff',
   '#ff0000',
   '#ffa500',
-  '#0000ff',
+  '#ffa500',
+  '#ffa500',
+  '#ff0000',
+  '#ff0000',
   '#0000ff',
   '#008000',
   '#ff0000',
@@ -216,7 +250,7 @@ function GameManager () {
   var BALL_VELOCITY = 1;
   var BALL_RADIUS = 12;
   var MOVE_CRASHED = 0.5;
-  var ballNumber = 45;
+  var ballNumber = Colors.length;
   var balls = [];
   this.colorManager = new ColorManager.ColorManager();
   var stop = false;
@@ -230,6 +264,7 @@ function GameManager () {
   this.stopBalls = false;
   this.idToDestroy = [];
   this.increaseDestroy = false;
+  this.changed = false;
 
   this.getNumOffset = function (velocity) {
     return track.length / velocity;
@@ -266,9 +301,14 @@ function GameManager () {
       }
       if (balls[num]) {
         balls[num].move(this.getBallsPositionOnTrack(balls[num].getTrackPos()));
-        if (num > 0 && balls[num].colide(balls[num - 1])) {
+        if (num > 0 && balls[num].collide(balls[num - 1])) {
           if (!this.stopBalls) {
             balls[num].increaseTrackPos(MOVE_CRASHED);
+          }
+        }
+        if (this.idToDestroy.length === 0) {
+          if (num > 0 && balls[num].getPos() - balls[num - 1].getPos() > BALL_RADIUS * 2 + MOVE_CRASHED) {
+            balls[num - 1].increaseTrackPos(MOVE_CRASHED);
           }
         }
       }
@@ -277,8 +317,8 @@ function GameManager () {
   };
 
   this.collideAllBalls = function () {
-    if (this.idToDestroy.length > 0 && !this.changed) {
-      this.collideBack(this.idToDestroy[0] - 1, this.idToDestroy[0], offset);
+    for (var i = 0; i < this.idToDestroy.length; ++i) {
+      this.collideBack(this.idToDestroy[i] - 1, this.idToDestroy[i], offset, i);
     }
   };
 
@@ -306,9 +346,8 @@ function GameManager () {
     //splice
     if (!this.moveChain) {
       var gun_ball = gun.getGunBall();
-      var id = ball.colide(gun_ball);
-      if (id != null) {
-        console.log('id: ', id);
+      var id = ball.collideId(gun_ball);
+      if ((id != null && !isNaN(id)) || id === 0) {
         var pos = balls[id].getTrackPos();
         var offset = balls[id].getOffset();
         var k = 0;
@@ -318,25 +357,33 @@ function GameManager () {
         this.createNewBall(id, pos, offset);
         this.moveChain = true;
         this.showAnimation = true;
-        this.initBallsIdDestroy(id);
+        this.increaseIdToDestroy(id);
+        var self = this;
+        setTimeout(function () {
+          self.initBallsIdDestroy(id);
+        }, 200);
         gun.removeCurrBallImpl();
       }
     }
   };
 
   this.createNewBall = function (id, pos, offset) {
-    var new_ball = this.createBallImpl(id, pos, gun.getGunBall().getColor());
+    this.changed = true;
+    var color = gun.getGunBall().getColor();
+    this.colorManager.increase(color);
+    var new_ball = this.createBallImpl(id, pos, color);
     balls.splice(id, 0, new_ball);
     balls[id].setTrackPos(pos);
     balls[id].setOffset(offset);
     ballNumber++;
     this.setIds(id + 1, 1);
+    var self = this;
+    this.setFalseChanged();
   };
 
   this.increaseIdToDestroy = function (id) {
+    console.log('before increase: ', this.idToDestroy);
     if (this.idToDestroy.length > 0) {
-      // console.log('before: ', this.idToDestroy);
-      this.changed = true;
       var found = false;
       var i = 1;
       if (id > 0 && id < this.idToDestroy[0]) {
@@ -344,8 +391,7 @@ function GameManager () {
         found = true;
       }
       while (i > 0 && i < this.idToDestroy.length) {
-        if (id > this.idToDestroy[i - 1] && id < this.idToDestroy[i]
-          || id > this.idToDestroy[this.idToDestroy.length - 1]) {
+        if (id > this.idToDestroy[i - 1] && id < this.idToDestroy[i]) {
           found = true;
           break;
         } else {
@@ -353,27 +399,47 @@ function GameManager () {
         }
       }
       if (found) {
-        this.idToDestroy[i]++;
+        for (var k = i; k < this.idToDestroy.length; ++k) {
+          this.idToDestroy[k]++;
+        }
       }
-      this.changed = false;
     }
+    console.log('after decrease: ', this.idToDestroy);
   };
 
-  this.decreaseId = function (num) {
-    this.changed = true;
-    var reverse = false;
-    console.log('not reversed: ', this.idToDestroy);
-    for (var i = 1; i < this.idToDestroy.length; ++i) {
-      if (this.idToDestroy[i-1] > this.idToDestroy[i]) {
-        this.idToDestroy[i-1] -= num;
-        reverse = true;
+  this.sortIdToDestroy = function () {
+    this.idToDestroy.sort(function (a, b) {
+      return a - b;
+    });
+  };
+
+  this.decreaseIdToDestroy = function (num, id) {
+    console.log('before decrease: ', this.idToDestroy);
+    var found = false;
+    this.sortIdToDestroy();
+    var k = 0;
+    while (k < this.idToDestroy.length) {
+      if (this.idToDestroy[k++] > id) {
+        found = true;
+        break;
       }
     }
-    if (reverse) {
-      this.idToDestroy.reverse();
+    if (found) {
+      for (var i = k - 1; i < this.idToDestroy.length; ++i) {
+        if (this.idToDestroy[i] > 0) {
+          this.idToDestroy[i] -= num;
+        }
+      }
     }
-    console.log('reversed: ', this.idToDestroy);
-    this.changed = false;
+    this.sortIdToDestroy();
+    this.idToDestroy = this.removeDuplicateUsingSet(this.idToDestroy);
+  };
+
+  this.setFalseChanged = function () {
+    var self = this;
+    setTimeout(function () {
+      self.changed = false;
+    }, 200);
   };
   this.setIds = function (begin, delta) {
     for (var i = begin; i < ballNumber; ++i) {
@@ -387,51 +453,79 @@ function GameManager () {
     var leftBalls = this.countLeft(id);
     var num = leftBalls.length + 1 + rightBalls.length;
     if (num > 2) {
+      var nextId = -1;
       var ballsIdDestroy = leftBalls.concat([id], rightBalls);
       if (ballsIdDestroy[0]) {
-        this.stopChain(ballsIdDestroy);
+        var beginId = ballsIdDestroy[0] - 1;
+        var endId = ballsIdDestroy[num - 1] + 1;
+        if (balls[beginId] && balls[endId] && balls[beginId].getColor() === balls[endId].getColor()) {
+          this.moveChainBack(ballsIdDestroy);
+          nextId = beginId + 1;
+        } else {
+          this.stopChain(ballsIdDestroy);
+        }
       }
       for (var i = 0; i < ballsIdDestroy.length; ++i) {
         var id = ballsIdDestroy[i];
         balls[id].remove();
-        //balls[id].setRemoved();
       }
-      // this.moveChainBack();
-      //
-      this.idToDestroy.push(ballsIdDestroy[0]);
-      this.decreaseId(num-1);
+      if (ballsIdDestroy[0]) {
+        this.idToDestroy.push(ballsIdDestroy[0]);
+      }
+      this.decreaseIdToDestroy(num, ballsIdDestroy[0]);
       this.destroyBalls(ballsIdDestroy);
-    } else {
-      console.log('increase');
-      this.increaseIdToDestroy(id);
+      var self = this;
+      if (nextId > 0) {
+        setTimeout(function () {
+          self.initBallsIdDestroy(nextId);
+        }, 200);
+      }
     }
+   // alert(this.idToDestroy);
+  };
+  this.removeDuplicateUsingSet = function (arr) {
+    var unique_array = Array.from(new Set(arr));
+    return unique_array;
   };
   this.changeBallsMove = function (idBegin, idEnd, offset) {
     for (var i = idBegin; i < idEnd; ++i) {
-      balls[i].setOffset(offset);
+      if (balls[i]) {
+        balls[i].setOffset(offset);
+      }
     }
   };
   this.moveChainBack = function (ballsIdDestroy) {
     var num = ballsIdDestroy.length;
-    this.changeBallsMove(ballsIdDestroy[num - 1] + 1, ballNumber, -2 * offset);
+    this.changeBallsMove(ballsIdDestroy[num - 1] + 1, ballNumber, -4 * offset);
   };
   this.stopChain = function (ballsIdDestroy) {
     this.stopBalls = true;
     var num = ballsIdDestroy.length;
     this.changeBallsMove(ballsIdDestroy[num - 1] + 1, ballNumber, 0);
   };
-  this.collideBack = function (beginId, endId, offset) {
-
-    if (beginId < 0 || endId >= ballNumber || balls[beginId].colide(balls[endId]) ||
-      balls[endId].colide(balls[beginId])) {
-      console.log('beginId: ', beginId);
-      console.log('endId: ', endId);
-      var finalId = this.idToDestroy[1] ? this.idToDestroy[1] : ballNumber;
-     // if (endId == 18) finalId = ballNumber;
-      this.changeBallsMove(endId, finalId, offset);
-      this.stopBalls = false;
-      this.idToDestroy.shift();
+  this.collideBack = function (beginId, endId, offset, pos) {
+    if (!this.changed) {
+      if ((beginId < 0 ||
+        endId >= ballNumber)) {
+        this.collideBackImpl(beginId, endId, pos);
+      }
+      if (balls[beginId] && balls[endId] && (balls[beginId].collide(balls[endId]))) {
+        if (Math.abs(balls[beginId].getPos() - balls[endId].getPos()) <= BALL_RADIUS * 2) {
+           // alert('beginId: ' + beginId + 'endId: ' + endId);
+          this.collideBackImpl(beginId, endId, pos);
+        }
+      }
     }
+  };
+
+  this.collideBackImpl = function (beginId, endId, pos) {
+    var finalId = this.idToDestroy[pos+1] ? this.idToDestroy[pos+1] : ballNumber;
+    if (balls[beginId]) {
+      this.changeBallsMove(endId, finalId, balls[beginId].getOffset());
+    }
+    this.stopBalls = false;
+    this.idToDestroy.splice(pos, 1);
+   // this.idToDestroy.shift();
   };
 
   this.changePos = function (idBegin, idEnd, offset) {
@@ -444,9 +538,16 @@ function GameManager () {
   };
   this.destroyBalls = function (ballsIdDestroy) {
     var num = ballsIdDestroy.length;
-    balls.splice(ballsIdDestroy[0], num);
+    var splicedBalls = balls.splice(ballsIdDestroy[0], num);
     ballNumber -= num;
     this.setIds(ballsIdDestroy[0], -num);
+    this.decreaseColors(splicedBalls);
+  };
+
+  this.decreaseColors = function (splicedBalls) {
+    for (var i = 0; i < splicedBalls.length; ++i) {
+      this.colorManager.decrease(splicedBalls[i].getColor());
+    }
   };
 
   this.countRight = function (id) {
@@ -483,8 +584,6 @@ module.exports.Instance = Instance;
 
 },{"./Ball":1,"./ColorManager":2,"./Colors":3,"./Gun":5,"./Track":6}],5:[function(require,module,exports){
 (function (global){
-global.back_color = '#e09448';
-var back_color = global.back_color;
 var Ball = require('./Ball');
 var GameManager = require('./GameManager');
 
@@ -499,16 +598,16 @@ function Gun () {
   var pivot_point = null;
   var shoot = false;
   var offset = null;
-  var BALL_VELOCITY = 15;
+  var BALL_VELOCITY = 18;
   var ball_pos = 0;
   var curr_line = null;
   var curr_ball = null;
 
   this.createGun = function () {
     this.createLine();
-    gun_ball2 = new Path.Circle(new Point(WINDOW_WIDTH * 0.45, WINDOW_HEIGHT * 0.6), BALL_RADIUS);
-    gun_ball2.fillColor = 'red';
-    gun_body = new Path.Circle(new Point(WINDOW_WIDTH * 0.4, WINDOW_HEIGHT * 0.6), WINDOW_WIDTH * 0.05);
+    gun_ball2 = new Path.Circle(new Point(WINDOW_WIDTH * 0.45, WINDOW_HEIGHT * 0.68), BALL_RADIUS);
+    gun_ball2.fillColor =  GameManager.Instance.colorManager.getRandomColor();
+    gun_body = new Path.Circle(new Point(WINDOW_WIDTH * 0.4, WINDOW_HEIGHT * 0.68), WINDOW_WIDTH * 0.05);
     gun_body.fillColor = 'black';
     var hole = this.createHole(gun_body, 0.55, gun_body.bounds.center);
     gun_ball1 = this.createOneBall(gun_body);
@@ -539,15 +638,15 @@ function Gun () {
 
   this.createGunGroup = function (gun_body, gun_ball1, gun_ball2, line, hole) {
     gun = new Group([line, gun_body, gun_ball2, hole, gun_ball1]);
-    pivot_point = gun.bounds.center + new Point(-350, 0);
+    pivot_point = gun.bounds.center + new Point(-353, 0);
     gun.rotate(rotate_angle, pivot_point);
   };
 
   this.createLine = function () {
     line = new Path();
      line.strokeColor = 'black';
-    line.add(new Point(WINDOW_WIDTH * 0.45, WINDOW_HEIGHT * 0.6));
-    line.add(new Point(WINDOW_WIDTH, WINDOW_HEIGHT * 0.6));
+    line.add(new Point(WINDOW_WIDTH * 0.45, WINDOW_HEIGHT * 0.68));
+    line.add(new Point(WINDOW_WIDTH, WINDOW_HEIGHT * 0.68));
     offset = line.length / this.getNumOffset(BALL_VELOCITY);
   };
 
@@ -575,16 +674,6 @@ function Gun () {
 
     view.onMouseMove = function (event) {
 
-      /*
-       var rotate = event.point.angle / 10;
-       if (event.point.x < WINDOW_WIDTH/2) {
-       gun.rotate(-rotate, pivot_point);
-       }
-       else {
-       gun.rotate(rotate, pivot_point);
-       }
-       */
-
     };
     view.onClick = function (event) {
       self.startShooting();
@@ -609,7 +698,7 @@ function Gun () {
 
   this.createCurrBall = function () {
     curr_ball = new Ball.Ball(null, gun.children[2].position, BALL_RADIUS, gun.children[2].fillColor.toCSS(true));
-    gun_ball2.fillColor = back_color;
+    gun_ball2.fillColor = GameManager.Instance.colorManager.backColor;
     GameManager.Instance.moveChain = false;
   };
 
@@ -624,14 +713,6 @@ function Gun () {
   };
 
   this.removeCurrBall = function () {
-    /*
-     if (curr_ball) {
-
-     console.log("path.position.x: ", path.position.x);
-     console.log("WINDOW_WIDTH: ", WINDOW_WIDTH);
-     console.log("res", path.position.x > WINDOW_WIDTH);
-     }
-     */
     if (curr_ball) {
       var path = curr_ball.getPath();
       if (path.position.x <= 0 || path.position.x > WINDOW_WIDTH
@@ -687,34 +768,57 @@ global.window_height = view.size.height;
 var WINDOW_WIDTH = global.window_width;
 var WINDOW_HEIGHT = global.window_height;
 
+function createTrack () {
+  var trackColor = '#F0E68C';
+  track = new Path();
+  /*
+   track.add(new Point(0, WINDOW_HEIGHT*3.2));
+   track.add(new Point(WINDOW_WIDTH/8, WINDOW_HEIGHT));
+   track.add(new Point(WINDOW_WIDTH/5, WINDOW_HEIGHT/4.5));
+   track.add(new Point(WINDOW_WIDTH/2, WINDOW_HEIGHT/4));
+   track.add(new Point(WINDOW_WIDTH*0.8, WINDOW_HEIGHT/2));
+   track.add(new Point(WINDOW_WIDTH*0.75, WINDOW_HEIGHT*0.8));
+   track.add(new Point(WINDOW_WIDTH*0.5, WINDOW_HEIGHT*0.83));
+   track.add(new Point(WINDOW_WIDTH*0.3, WINDOW_HEIGHT*0.7));
+   track.add(new Point(WINDOW_WIDTH*0.3, WINDOW_HEIGHT*0.45));
+   track.add(new Point(WINDOW_WIDTH*0.5, WINDOW_HEIGHT*0.46));
+   */
+  track.add(new Point(WINDOW_WIDTH*0.125, WINDOW_HEIGHT*3.2));
+  track.add(new Point(WINDOW_WIDTH*0.125, WINDOW_HEIGHT*0.6));
+  track.add(new Point(WINDOW_WIDTH*0.9, WINDOW_HEIGHT*0.2));
+  track.add(new Point(WINDOW_WIDTH*0.5, WINDOW_HEIGHT*0.8));
+  track.add(new Point(WINDOW_WIDTH*0.27, WINDOW_HEIGHT*0.76));
+  track.add(new Point(WINDOW_WIDTH*0.32, WINDOW_HEIGHT*0.58));
+  track.add(new Point(WINDOW_WIDTH*0.48, WINDOW_HEIGHT*0.44));
+  track.add(new Point(WINDOW_WIDTH*0.7, WINDOW_HEIGHT*0.35));
 
+  // track.add(new Point(WINDOW_WIDTH*0.8, WINDOW_HEIGHT*0.22));
+  // track.add(new Point(WINDOW_WIDTH*0.85, WINDOW_HEIGHT*0.3));
+  // track.add(new Point(WINDOW_WIDTH*0.87, WINDOW_HEIGHT*0.4));
+  // track.add(new Point(WINDOW_WIDTH*0.8, WINDOW_HEIGHT*0.65));
+  // track.add(new Point(WINDOW_WIDTH*0.75, WINDOW_HEIGHT*0.85));
+  // track.add(new Point(WINDOW_WIDTH*0.7, WINDOW_HEIGHT*0.9));
+  //
+  // track.add(new Point(WINDOW_WIDTH*0.45, WINDOW_HEIGHT*0.85));
+  // track.add(new Point(WINDOW_WIDTH*0.35, WINDOW_HEIGHT*0.65));
+  // track.add(new Point(WINDOW_WIDTH*0.4, WINDOW_HEIGHT*0.4));
+  // track.add(new Point(WINDOW_WIDTH*0.47, WINDOW_HEIGHT*0.3));
+  // track.add(new Point(WINDOW_WIDTH*0.55, WINDOW_HEIGHT*0.32));
+  // track.add(new Point(WINDOW_WIDTH*0.65, WINDOW_HEIGHT*0.43));
+  // track.add(new Point(WINDOW_WIDTH*0.56, WINDOW_HEIGHT*0.6));
 
-function createTrack() {
-    var trackColor = '#F0E68C';
-    track = new Path();
-    track.add(new Point(10, WINDOW_HEIGHT*1.5));
-    track.add(new Point(WINDOW_WIDTH/8, WINDOW_HEIGHT/2));
-    track.add(new Point(WINDOW_WIDTH/5, WINDOW_HEIGHT/4.5));
-    track.add(new Point(WINDOW_WIDTH/2, WINDOW_HEIGHT/4));
-    track.add(new Point(WINDOW_WIDTH*0.8, WINDOW_HEIGHT/2));
-    track.add(new Point(WINDOW_WIDTH*0.75, WINDOW_HEIGHT*0.8));
-    track.add(new Point(WINDOW_WIDTH*0.5, WINDOW_HEIGHT*0.83));
-    track.add(new Point(WINDOW_WIDTH*0.3, WINDOW_HEIGHT*0.7));
-    track.add(new Point(WINDOW_WIDTH*0.3, WINDOW_HEIGHT*0.45));
-    track.add(new Point(WINDOW_WIDTH*0.5, WINDOW_HEIGHT*0.46));
+  track.strokeColor = trackColor;
+  track.strokeWidth = 25;
 
-    track.strokeColor = trackColor;
-    track.strokeWidth = 25;
+  track.smooth();
 
-    track.smooth();
-    var finish  = new Path.Circle({
-        center: track.getPointAt(track.length),
-        radius: 26,
-        fillColor: trackColor
-    });
-
-    return track;
-    //offset = track.length / getNumOffset(2);
+  var finish = new Path.Circle({
+    center: track.getPointAt(track.length),
+    radius: 26,
+    fillColor: trackColor,
+  });
+  return track;
+  //offset = track.length / getNumOffset(2);
 
 }
 

@@ -61,12 +61,29 @@ function Ball (id, center, radius, color) {
     return this.color;
   };
 
-  this.colide = function (another) {
+  this.collideId = function (another) {
     if (another && another.getPath().intersects(ball)) {
       return this.id;
     } else {
       return null;
     }
+  };
+
+  this.collide = function (another) {
+    if (another && another.getPath().intersects(ball)) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  this.setStroke = function () {
+    ball.strokeColor = 'black';
+    ball.strokeWidth = 10;
+  };
+
+  this.setNoStroke = function () {
+    ball.strokeWidth = 0;
   };
 
   this.remove = function () {
@@ -84,6 +101,9 @@ function Ball (id, center, radius, color) {
 
   this.increaseTrackPos = function (delta) {
     this.trackPos += delta;
+  };
+  this.getPos = function () {
+    return this.trackPos;
   };
   this.setOffset = function (offset) {
     this.offset = offset;

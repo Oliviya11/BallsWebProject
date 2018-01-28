@@ -1,5 +1,3 @@
-global.back_color = '#e09448';
-var back_color = global.back_color;
 var Ball = require('./Ball');
 var GameManager = require('./GameManager');
 
@@ -14,16 +12,16 @@ function Gun () {
   var pivot_point = null;
   var shoot = false;
   var offset = null;
-  var BALL_VELOCITY = 15;
+  var BALL_VELOCITY = 18;
   var ball_pos = 0;
   var curr_line = null;
   var curr_ball = null;
 
   this.createGun = function () {
     this.createLine();
-    gun_ball2 = new Path.Circle(new Point(WINDOW_WIDTH * 0.45, WINDOW_HEIGHT * 0.6), BALL_RADIUS);
-    gun_ball2.fillColor = 'red';
-    gun_body = new Path.Circle(new Point(WINDOW_WIDTH * 0.4, WINDOW_HEIGHT * 0.6), WINDOW_WIDTH * 0.05);
+    gun_ball2 = new Path.Circle(new Point(WINDOW_WIDTH * 0.45, WINDOW_HEIGHT * 0.68), BALL_RADIUS);
+    gun_ball2.fillColor =  GameManager.Instance.colorManager.getRandomColor();
+    gun_body = new Path.Circle(new Point(WINDOW_WIDTH * 0.4, WINDOW_HEIGHT * 0.68), WINDOW_WIDTH * 0.05);
     gun_body.fillColor = 'black';
     var hole = this.createHole(gun_body, 0.55, gun_body.bounds.center);
     gun_ball1 = this.createOneBall(gun_body);
@@ -54,15 +52,15 @@ function Gun () {
 
   this.createGunGroup = function (gun_body, gun_ball1, gun_ball2, line, hole) {
     gun = new Group([line, gun_body, gun_ball2, hole, gun_ball1]);
-    pivot_point = gun.bounds.center + new Point(-350, 0);
+    pivot_point = gun.bounds.center + new Point(-353, 0);
     gun.rotate(rotate_angle, pivot_point);
   };
 
   this.createLine = function () {
     line = new Path();
      line.strokeColor = 'black';
-    line.add(new Point(WINDOW_WIDTH * 0.45, WINDOW_HEIGHT * 0.6));
-    line.add(new Point(WINDOW_WIDTH, WINDOW_HEIGHT * 0.6));
+    line.add(new Point(WINDOW_WIDTH * 0.45, WINDOW_HEIGHT * 0.68));
+    line.add(new Point(WINDOW_WIDTH, WINDOW_HEIGHT * 0.68));
     offset = line.length / this.getNumOffset(BALL_VELOCITY);
   };
 
@@ -90,16 +88,6 @@ function Gun () {
 
     view.onMouseMove = function (event) {
 
-      /*
-       var rotate = event.point.angle / 10;
-       if (event.point.x < WINDOW_WIDTH/2) {
-       gun.rotate(-rotate, pivot_point);
-       }
-       else {
-       gun.rotate(rotate, pivot_point);
-       }
-       */
-
     };
     view.onClick = function (event) {
       self.startShooting();
@@ -124,7 +112,7 @@ function Gun () {
 
   this.createCurrBall = function () {
     curr_ball = new Ball.Ball(null, gun.children[2].position, BALL_RADIUS, gun.children[2].fillColor.toCSS(true));
-    gun_ball2.fillColor = back_color;
+    gun_ball2.fillColor = GameManager.Instance.colorManager.backColor;
     GameManager.Instance.moveChain = false;
   };
 
@@ -139,14 +127,6 @@ function Gun () {
   };
 
   this.removeCurrBall = function () {
-    /*
-     if (curr_ball) {
-
-     console.log("path.position.x: ", path.position.x);
-     console.log("WINDOW_WIDTH: ", WINDOW_WIDTH);
-     console.log("res", path.position.x > WINDOW_WIDTH);
-     }
-     */
     if (curr_ball) {
       var path = curr_ball.getPath();
       if (path.position.x <= 0 || path.position.x > WINDOW_WIDTH
