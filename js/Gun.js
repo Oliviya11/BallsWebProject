@@ -58,7 +58,9 @@ function Gun () {
 
   this.createLine = function () {
     line = new Path();
-     line.strokeColor = 'black';
+    if (global.debug) {
+      line.strokeColor = 'black';
+    }
     line.add(new Point(WINDOW_WIDTH * 0.45, WINDOW_HEIGHT * 0.68));
     line.add(new Point(WINDOW_WIDTH, WINDOW_HEIGHT * 0.68));
     offset = line.length / this.getNumOffset(BALL_VELOCITY);
@@ -121,9 +123,7 @@ function Gun () {
   };
 
   this.getBallsPositionOnLine = function (ball_pos) {
-
     return curr_line.getPointAt(ball_pos);
-
   };
 
   this.removeCurrBall = function () {
@@ -157,7 +157,6 @@ function Gun () {
       curr_ball.move(this.getBallsPositionOnLine(ball_pos));
       this.removeCurrBall();
     }
-
   };
 
   this.getGunBall = function () {

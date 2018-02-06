@@ -1,17 +1,18 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function (global){
 function Ball (id, center, radius, color) {
-
-
   this.id = id;
   this.color = color;
   this.trackPos = 0;
   this.offset = 0;
   this.textId = '';
   this.setTextId = function(id) {
-    if (id || id == 0) {
-      this.textId = id;
-    } else {
-      this.textId = '';
+    if (global.debug) {
+      if (id || id === 0) {
+        this.textId = id;
+      } else {
+        this.textId = '';
+      }
     }
   };
 
@@ -23,14 +24,16 @@ function Ball (id, center, radius, color) {
     fillColor: this.color
   });
 
-  this.text = new PointText({
-    point: center,
-    content: this.textId,
-    fillColor: 'black',
-    fontFamily: 'Courier New',
-    fontWeight: 'bold',
-    fontSize: 15
-  });
+  if (global.debug) {
+    this.text = new PointText({
+      point: center,
+      content: this.textId,
+      fillColor: 'black',
+      fontFamily: 'Courier New',
+      fontWeight: 'bold',
+      fontSize: 15
+    });
+  }
 
   this.getId = function () {
     return this.id;
@@ -39,12 +42,14 @@ function Ball (id, center, radius, color) {
   this.setId = function (id) {
     this.id = id;
     this.setTextId(id);
-    this.text.content = this.textId;
+    if (global.debug) {
+      this.text.content = this.textId;
+    }
   };
 
   this.move = function (pos) {
     ball.position = pos;
-    if (pos) {
+    if (pos && global.debug) {
       this.text.point = new Point(pos.x - 5, pos.y + 5);
     }
   };
@@ -71,11 +76,7 @@ function Ball (id, center, radius, color) {
   };
 
   this.collide = function (another) {
-    if (another && another.getPath().intersects(ball)) {
-      return true;
-    } else {
-      return false;
-    }
+   return (another && another.getPath().intersects(ball));
   };
 
   this.setStroke = function () {
@@ -89,7 +90,9 @@ function Ball (id, center, radius, color) {
 
   this.remove = function () {
     ball.remove();
-    this.text.remove();
+    if (global.debug)  {
+      this.text.remove();
+    }
   };
 
   this.setTrackPos = function(trackP) {
@@ -125,6 +128,7 @@ module.exports.Ball = Ball;
 
 
 
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],2:[function(require,module,exports){
 function ColorManager() {
   this.backColor = '#e09448';
@@ -644,7 +648,9 @@ function Gun () {
 
   this.createLine = function () {
     line = new Path();
-     line.strokeColor = 'black';
+    if (global.debug) {
+      line.strokeColor = 'black';
+    }
     line.add(new Point(WINDOW_WIDTH * 0.45, WINDOW_HEIGHT * 0.68));
     line.add(new Point(WINDOW_WIDTH, WINDOW_HEIGHT * 0.68));
     offset = line.length / this.getNumOffset(BALL_VELOCITY);
@@ -707,9 +713,7 @@ function Gun () {
   };
 
   this.getBallsPositionOnLine = function (ball_pos) {
-
     return curr_line.getPointAt(ball_pos);
-
   };
 
   this.removeCurrBall = function () {
@@ -743,7 +747,6 @@ function Gun () {
       curr_ball.move(this.getBallsPositionOnLine(ball_pos));
       this.removeCurrBall();
     }
-
   };
 
   this.getGunBall = function () {
@@ -771,18 +774,6 @@ var WINDOW_HEIGHT = global.window_height;
 function createTrack () {
   var trackColor = '#F0E68C';
   track = new Path();
-  /*
-   track.add(new Point(0, WINDOW_HEIGHT*3.2));
-   track.add(new Point(WINDOW_WIDTH/8, WINDOW_HEIGHT));
-   track.add(new Point(WINDOW_WIDTH/5, WINDOW_HEIGHT/4.5));
-   track.add(new Point(WINDOW_WIDTH/2, WINDOW_HEIGHT/4));
-   track.add(new Point(WINDOW_WIDTH*0.8, WINDOW_HEIGHT/2));
-   track.add(new Point(WINDOW_WIDTH*0.75, WINDOW_HEIGHT*0.8));
-   track.add(new Point(WINDOW_WIDTH*0.5, WINDOW_HEIGHT*0.83));
-   track.add(new Point(WINDOW_WIDTH*0.3, WINDOW_HEIGHT*0.7));
-   track.add(new Point(WINDOW_WIDTH*0.3, WINDOW_HEIGHT*0.45));
-   track.add(new Point(WINDOW_WIDTH*0.5, WINDOW_HEIGHT*0.46));
-   */
   track.add(new Point(WINDOW_WIDTH*0.125, WINDOW_HEIGHT*3.2));
   track.add(new Point(WINDOW_WIDTH*0.125, WINDOW_HEIGHT*0.6));
   track.add(new Point(WINDOW_WIDTH*0.9, WINDOW_HEIGHT*0.2));
@@ -792,21 +783,6 @@ function createTrack () {
   track.add(new Point(WINDOW_WIDTH*0.48, WINDOW_HEIGHT*0.44));
   track.add(new Point(WINDOW_WIDTH*0.7, WINDOW_HEIGHT*0.35));
 
-  // track.add(new Point(WINDOW_WIDTH*0.8, WINDOW_HEIGHT*0.22));
-  // track.add(new Point(WINDOW_WIDTH*0.85, WINDOW_HEIGHT*0.3));
-  // track.add(new Point(WINDOW_WIDTH*0.87, WINDOW_HEIGHT*0.4));
-  // track.add(new Point(WINDOW_WIDTH*0.8, WINDOW_HEIGHT*0.65));
-  // track.add(new Point(WINDOW_WIDTH*0.75, WINDOW_HEIGHT*0.85));
-  // track.add(new Point(WINDOW_WIDTH*0.7, WINDOW_HEIGHT*0.9));
-  //
-  // track.add(new Point(WINDOW_WIDTH*0.45, WINDOW_HEIGHT*0.85));
-  // track.add(new Point(WINDOW_WIDTH*0.35, WINDOW_HEIGHT*0.65));
-  // track.add(new Point(WINDOW_WIDTH*0.4, WINDOW_HEIGHT*0.4));
-  // track.add(new Point(WINDOW_WIDTH*0.47, WINDOW_HEIGHT*0.3));
-  // track.add(new Point(WINDOW_WIDTH*0.55, WINDOW_HEIGHT*0.32));
-  // track.add(new Point(WINDOW_WIDTH*0.65, WINDOW_HEIGHT*0.43));
-  // track.add(new Point(WINDOW_WIDTH*0.56, WINDOW_HEIGHT*0.6));
-
   track.strokeColor = trackColor;
   track.strokeWidth = 25;
 
@@ -815,23 +791,19 @@ function createTrack () {
   var finish = new Path.Circle({
     center: track.getPointAt(track.length),
     radius: 26,
-    fillColor: trackColor,
+    fillColor: trackColor
   });
   return track;
-  //offset = track.length / getNumOffset(2);
 
 }
 
 module.exports.createTrack = createTrack;
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],7:[function(require,module,exports){
+(function (global){
+global.debug = false;
 var GameManager = require('./GameManager');
-
-//var game_manager = GameManagerInstance;
-  //new GameManager.GameManager();
-//console.log()
-//game_manager.launch();
-//console.log(GameManager.Instance);
 GameManager.Instance.launch();
 
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./GameManager":4}]},{},[7]);

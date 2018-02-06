@@ -1,16 +1,16 @@
 function Ball (id, center, radius, color) {
-
-
   this.id = id;
   this.color = color;
   this.trackPos = 0;
   this.offset = 0;
   this.textId = '';
   this.setTextId = function(id) {
-    if (id || id == 0) {
-      this.textId = id;
-    } else {
-      this.textId = '';
+    if (global.debug) {
+      if (id || id === 0) {
+        this.textId = id;
+      } else {
+        this.textId = '';
+      }
     }
   };
 
@@ -22,14 +22,16 @@ function Ball (id, center, radius, color) {
     fillColor: this.color
   });
 
-  this.text = new PointText({
-    point: center,
-    content: this.textId,
-    fillColor: 'black',
-    fontFamily: 'Courier New',
-    fontWeight: 'bold',
-    fontSize: 15
-  });
+  if (global.debug) {
+    this.text = new PointText({
+      point: center,
+      content: this.textId,
+      fillColor: 'black',
+      fontFamily: 'Courier New',
+      fontWeight: 'bold',
+      fontSize: 15
+    });
+  }
 
   this.getId = function () {
     return this.id;
@@ -38,12 +40,14 @@ function Ball (id, center, radius, color) {
   this.setId = function (id) {
     this.id = id;
     this.setTextId(id);
-    this.text.content = this.textId;
+    if (global.debug) {
+      this.text.content = this.textId;
+    }
   };
 
   this.move = function (pos) {
     ball.position = pos;
-    if (pos) {
+    if (pos && global.debug) {
       this.text.point = new Point(pos.x - 5, pos.y + 5);
     }
   };
@@ -70,11 +74,7 @@ function Ball (id, center, radius, color) {
   };
 
   this.collide = function (another) {
-    if (another && another.getPath().intersects(ball)) {
-      return true;
-    } else {
-      return false;
-    }
+   return (another && another.getPath().intersects(ball));
   };
 
   this.setStroke = function () {
@@ -88,7 +88,9 @@ function Ball (id, center, radius, color) {
 
   this.remove = function () {
     ball.remove();
-    this.text.remove();
+    if (global.debug)  {
+      this.text.remove();
+    }
   };
 
   this.setTrackPos = function(trackP) {
