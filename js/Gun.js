@@ -74,16 +74,16 @@ function Gun () {
   this.move = function () {
     var self = this;
     view.onKeyDown = function (event) {
-      if (event.key == 'right') {
+      if (event.key === 'right') {
         gun.rotate(step, pivot_point);
       }
-      else if (event.key == 'left') {
+      else if (event.key === 'left') {
         gun.rotate(-step, pivot_point);
       }
-      else if ((event.key == 'up' || event.key == 'down') && !shoot) {
+      else if ((event.key === 'up' || event.key === 'down') && !shoot) {
         self.flipColors();
       }
-      else if (event.key == 'space') {
+      else if (event.key === 'space') {
         self.startShooting();
       }
     };
