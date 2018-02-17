@@ -5,7 +5,7 @@ var ColorManager = require('./ColorManager');
 var Colors = require('./Colors').Colors;
 
 function GameManager () {
-  var BALL_VELOCITY = 1;
+  var BALL_VELOCITY = 1.5;
   var BALL_RADIUS = 12;
   var MOVE_CRASHED = 0.5;
   var ballNumber = Colors.length;

@@ -12,7 +12,7 @@ function Gun () {
   var pivot_point = null;
   var shoot = false;
   var offset = null;
-  var BALL_VELOCITY = 18;
+  var BALL_VELOCITY = 20;
   var ball_pos = 0;
   var curr_line = null;
   var curr_ball = null;
