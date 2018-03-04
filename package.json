@@ -4,8 +4,10 @@
   "description": "",
   "main": "ballsScript.js",
   "scripts": {
-    "build": "browserify paperjs/js/app.js -o paperjs/debug.js",
-    "watch": "watchify paperjs/js/app.js -o paperjs/debug.js"
+    "build-paper": "browserify paperjs/js/app.js -o paperjs/debug.js",
+    "watch-paper": "watchify paperjs/js/app.js -o paperjs/debug.js",
+    "build-graphics": "browserify graphicsjs/js/app.js -o graphicsjs/debug.js",
+    "watch-graphics": "watchify graphicsjs/js/app.js -o graphicsjs/debug.js"
   },
   "author": "",
   "license": "ISC",
