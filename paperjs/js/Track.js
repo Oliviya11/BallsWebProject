@@ -27,7 +27,6 @@ function createTrack () {
     fillColor: trackColor
   });
   return track;
-
 }
 
 module.exports.createTrack = createTrack;

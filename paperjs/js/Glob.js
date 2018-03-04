@@ -1,4 +1,4 @@
-function Ball (id, center, radius, color) {
+function Glob (id, center, radius, color) {
   this.id = id;
   this.color = color;
   this.trackPos = 0;
@@ -16,7 +16,7 @@ function Ball (id, center, radius, color) {
 
   this.setTextId(id);
 
-  var ball = new Path.Circle({
+  var glob = new Path.Circle({
     center: center,
     radius: radius,
     fillColor: this.color
@@ -46,19 +46,19 @@ function Ball (id, center, radius, color) {
   };
 
   this.move = function (pos) {
-    ball.position = pos;
+    glob.position = pos;
     if (pos && global.debug) {
       this.text.point = new Point(pos.x - 5, pos.y + 5);
     }
   };
 
   this.getPath = function () {
-    return ball;
+    return glob;
   };
 
   this.changeColor = function (new_color) {
     this.color = new_color;
-    ball.fillColor = new_color;
+    glob.fillColor = new_color;
   };
 
   this.getColor = function () {
@@ -66,7 +66,7 @@ function Ball (id, center, radius, color) {
   };
 
   this.collideId = function (another) {
-    if (another && another.getPath().intersects(ball)) {
+    if (another && another.getPath().intersects(glob)) {
       return this.id;
     } else {
       return null;
@@ -74,20 +74,20 @@ function Ball (id, center, radius, color) {
   };
 
   this.collide = function (another) {
-   return (another && another.getPath().intersects(ball));
+   return (another && another.getPath().intersects(glob));
   };
 
   this.setStroke = function () {
-    ball.strokeColor = 'black';
-    ball.strokeWidth = 10;
+    glob.strokeColor = 'black';
+    glob.strokeWidth = 10;
   };
 
   this.setNoStroke = function () {
-    ball.strokeWidth = 0;
+    glob.strokeWidth = 0;
   };
 
   this.remove = function () {
-    ball.remove();
+    glob.remove();
     if (global.debug)  {
       this.text.remove();
     }
@@ -122,6 +122,6 @@ function Ball (id, center, radius, color) {
 
 }
 
-module.exports.Ball = Ball;
+module.exports.Glob = Glob;
 
 
