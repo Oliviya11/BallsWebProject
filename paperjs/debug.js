@@ -474,7 +474,6 @@ function GameManager () {
   };
 
   this.increaseIdToDestroy = function (id) {
-    console.log('before increase: ', this.idToDestroy);
     if (this.idToDestroy.length > 0) {
       var found = false;
       var i = 1;
@@ -496,7 +495,6 @@ function GameManager () {
         }
       }
     }
-    console.log('after decrease: ', this.idToDestroy);
   };
 
   this.sortIdToDestroy = function () {
@@ -506,7 +504,6 @@ function GameManager () {
   };
 
   this.decreaseIdToDestroy = function (num, id) {
-    console.log('before decrease: ', this.idToDestroy);
     var found = false;
     this.sortIdToDestroy();
     var k = 0;
@@ -892,6 +889,9 @@ module.exports.createTrack = createTrack;
 global.debug = false;
 var GameManager = require('./GameManager');
 GameManager.Instance.launch();
+var rect = new Rectangle();
+rect.point = {width: 100, height: 20};
+console.log(rect.point);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./GameManager":4}]},{},[7]);
