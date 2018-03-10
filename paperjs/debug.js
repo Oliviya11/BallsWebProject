@@ -1,13 +1,21 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var Colors = require('./Colors').Colors;
+
 function ColorManager() {
   this.backColor = '#e09448';
   this.prevColor = -1;
-  var ColorNum = 4;
+  this.ColorNum = 4;
+
+  this.greenColor = countColor('#008000');
+  this.yellowColor = countColor('#ffa500');
+  this.redColor = countColor('#ff0000');
+  this.blueColor = countColor('#0000ff');
+
    var Color = {
-     '#008000' : 12,
-     '#ffa500' : 17,
-     '#ff0000' : 15,
-     '#0000ff' : 21
+     '#008000' : this.greenColor,
+     '#ffa500' : this.yellowColor,
+     '#ff0000' : this.redColor,
+     '#0000ff' : this.blueColor
    };
    this.decrease = function (color) {
      if (Color[color] > 0) {
@@ -31,19 +39,29 @@ function ColorManager() {
      return colorStr;
    };
    this.checkAllZero = function() {
-     for (var i = 0; i < ColorNum; ++i) {
+     for (var i = 0; i < this.ColorNum; ++i) {
        var str = Object.keys(Color)[i];
        if (Color[str] !== 0) {
          return false;
        }
      }
      return true;
-   }
+   };
+}
+
+function countColor (color) {
+  var number = 0;
+  for (var i = 0; i < Colors.length; ++i) {
+    if (Colors[i] === color) {
+      number ++;
+    }
+  }
+  return number;
 }
 
 module.exports.ColorManager = ColorManager;
 
-},{}],2:[function(require,module,exports){
+},{"./Colors":2}],2:[function(require,module,exports){
 var Colors = [
   '#008000',
   '#0000ff',
@@ -208,8 +226,8 @@ var ColorManager = require('./ColorManager');
 var Colors = require('./Colors').Colors;
 
 function GameManager () {
-  var BALL_VELOCITY = 1.5;
-  var BALL_RADIUS = 12;
+  var GLOB_VELOCITY = 1.5;
+  var GLOB_RADIUS = 12;
   var MOVE_CRASHED = 0.5;
   var globNumber = Colors.length;
   var globs = [];
@@ -239,7 +257,7 @@ function GameManager () {
     var glob_pos = 0;
     for (var i = 0; i < globNumber; ++i) {
       this.createGlob(i, glob_pos, Colors[i]);
-      glob_pos += BALL_RADIUS * 2 + MOVE_CRASHED;
+      glob_pos += GLOB_RADIUS * 2 + MOVE_CRASHED;
     }
   };
 
@@ -251,7 +269,7 @@ function GameManager () {
 
   this.createGlobImpl = function (num, glob_pos, color) {
     var point = track.getPointAt(glob_pos);
-    return new Glob.Glob(num, point, BALL_RADIUS, color);
+    return new Glob.Glob(num, point, GLOB_RADIUS, color);
   };
 
   this.moveGlob = function (num) {
@@ -268,7 +286,7 @@ function GameManager () {
           }
         }
         if (this.idToDestroy.length === 0) {
-          if (num > 0 && globs[num].getPos() - globs[num - 1].getPos() > BALL_RADIUS * 2 + MOVE_CRASHED) {
+          if (num > 0 && globs[num].getPos() - globs[num - 1].getPos() > GLOB_RADIUS * 2 + MOVE_CRASHED) {
             globs[num - 1].increaseTrackPos(MOVE_CRASHED);
           }
         }
@@ -285,14 +303,14 @@ function GameManager () {
 
   this.moveGlobs = function () {
     for (var i = 0; i < globNumber; ++i) {
-      this.moveGlob(i, BALL_VELOCITY);
+      this.moveGlob(i, GLOB_VELOCITY);
     }
   };
 
   this.launch = function () {
     // var f = new Foo('MyFoo');
     track = Track.createTrack();
-    offset = track.length / this.getNumOffset(BALL_VELOCITY);
+    offset = track.length / this.getNumOffset(GLOB_VELOCITY);
     this.createGlobs();
     var self = this;
     gun = new Gun.Gun();
@@ -313,7 +331,7 @@ function GameManager () {
         var offset = globs[id].getOffset();
         var k = 0;
         for (var i = id; i < globNumber; ++i) {
-          globs[i].increaseTrackPos(BALL_RADIUS * 2);
+          globs[i].increaseTrackPos(GLOB_RADIUS * 2);
         }
         this.createNewGlob(id, pos, offset);
         this.moveChain = true;
@@ -468,7 +486,7 @@ function GameManager () {
         this.collideBackImpl(beginId, endId, pos);
       }
       if (globs[beginId] && globs[endId] && (globs[beginId].collide(globs[endId]))) {
-        if (Math.abs(globs[beginId].getPos() - globs[endId].getPos()) <= BALL_RADIUS * 2) {
+        if (Math.abs(globs[beginId].getPos() - globs[endId].getPos()) <= GLOB_RADIUS * 2) {
            // alert('beginId: ' + beginId + 'endId: ' + endId);
           this.collideBackImpl(beginId, endId, pos);
         }
@@ -488,7 +506,7 @@ function GameManager () {
 
   this.changePos = function (idBegin, idEnd, offset) {
     var i = idBegin + 1;
-    while (i < idEnd && globs[i].getTrackPos() - globs[i - 1].getTrackPos() <= BALL_RADIUS * 2 + MOVE_CRASHED) {
+    while (i < idEnd && globs[i].getTrackPos() - globs[i - 1].getTrackPos() <= GLOB_RADIUS * 2 + MOVE_CRASHED) {
       globs[i].setOffset(offset);
       globs[i - 1].setOffset(offset);
       i++;

@@ -1,12 +1,20 @@
 var GameManager = require('./GameManager');
 
-function Ball(radius, position, color) {
-  this.ball = GameManager.Instance.stage.circle(position.x, position.y, radius);
-  this.ball.fill(color);
-  this.finish.stroke(color, 1);
-  this.setPosition = function(position) {
-    this.ball.setPosition(position.x, position.y);
+function Glob(radius, position, color, posNum) {
+  this.glob = GameManager.Instance.stage.circle(position.x, position.y, radius);
+  this.glob.fill(color);
+  this.glob.stroke(color, 1);
+  this.posNum = posNum;
+
+  this.setPosition = function(position, posNum) {
+    var center = new acgraph.math.Coordinate(position.x, position.y);
+    this.glob.center(center);
+    this.posNum = posNum;
   };
+
+  this.getNumPosition = function() {
+    return this.posNum;
+  }
 }
 
-module.exports.Ball = Ball;
+module.exports.Glob = Glob;
