@@ -7,12 +7,16 @@
     "build-paper": "browserify paperjs/js/app.js -o paperjs/debug.js",
     "watch-paper": "watchify paperjs/js/app.js -o paperjs/debug.js",
     "build-graphics": "browserify graphicsjs/js/app.js -o graphicsjs/debug.js",
-    "watch-graphics": "watchify graphicsjs/js/app.js -o graphicsjs/debug.js"
+    "watch-graphics": "watchify graphicsjs/js/app.js -o graphicsjs/debug.js",
+    "build-p5": "browserify p5js/js/app.js -o p5js/sketch.js"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "browserify": "^15.0.0",
     "watchify": "^3.9.0"
+  },
+  "dependencies": {
+    "p5": "^0.6.1"
   }
 }

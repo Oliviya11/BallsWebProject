@@ -32,13 +32,13 @@ function GameManager () {
   };
 
   this.createGlobs = function () {
-    for (var i = 0, k = 0; k < this.globNumber; i+=this.offset, ++k) {
+    for (var i = 0, k = 0; k < this.globNumber; i += this.offset, ++k) {
       var posNum = 10 + i;
       this.globs[k] = new Glob.Glob(this.GLOB_RADIUS, this.trackPoints[posNum], Colors[k], posNum);
     }
   };
 
-  this.moveGlobs = function() {
+  this.moveGlobs = function () {
     var now = new Date().getTime();
     if (now - this.lastTime > 200) {
       for (var i = 0; i < this.globs.length; ++i) {
@@ -53,7 +53,7 @@ function GameManager () {
   };
 
   this.draw = function () {
-   // console.log("move");
+    // console.log("move");
     this.moveGlobs();
     window.requestAnimationFrame(this.draw.bind(this));
   };
