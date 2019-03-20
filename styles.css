@@ -1,0 +1,9 @@
+html, #myCanvas {
+    background-color: #e09448;
+    width: 1300px;
+    height: 600px;
+    min-width: 1300px;
+    min-height: 600px;
+    margin: auto;
+    overflow: hidden;
+}
